@@ -1,0 +1,74 @@
+{
+  "expo": {
+    "name": "ReUseRadar",
+    "slug": "ReUseRadar",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "reuseradar",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "ReUse Radar needs camera access to photograph reusable items.",
+        "NSLocationWhenInUseUsageDescription": "ReUse Radar needs location to show nearby items and tag pickup spots.",
+        "NSContactsUsageDescription": "ReUse Radar needs contacts access to invite campus classmates."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#ECFDF5",
+        "foregroundImage": "./assets/images/android-icon-foreground.png",
+        "backgroundImage": "./assets/images/android-icon-background.png"
+      },
+      "permissions": [
+        "CAMERA",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "READ_CONTACTS",
+        "READ_EXTERNAL_STORAGE",
+        "READ_MEDIA_IMAGES",
+        "NOTIFICATIONS",
+        "POST_NOTIFICATIONS"
+      ],
+      "predictiveBackGestureEnabled": false
+    },
+    "plugins": [
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#059669",
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 80
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "ReUse Radar needs camera access to photograph reusable items."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "ReUse Radar needs location to show nearby items and tag pickup spots."
+        }
+      ],
+      [
+        "expo-contacts",
+        {
+          "contactsPermission": "ReUse Radar needs contacts access to invite campus classmates."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "ReUse Radar needs photo access to attach pictures to your reusable items.",
+          "cameraPermission": "ReUse Radar needs camera access to photograph reusable items."
+        }
+      ],
+      "expo-notifications",
+      "expo-sharing"
+    ]
+  }
+}
