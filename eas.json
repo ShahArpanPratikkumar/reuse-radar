@@ -11,9 +11,18 @@
       "distribution": "internal",
       "android": {
         "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://reuse-radar.onrender.com/api",
+        "EXPO_PUBLIC_IMAGE_BASE_URL": "https://reuse-radar.onrender.com"
       }
     },
-    "production": {}
+    "production": {
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://reuse-radar.onrender.com/api",
+        "EXPO_PUBLIC_IMAGE_BASE_URL": "https://reuse-radar.onrender.com"
+      }
+    }
   },
   "submit": {
     "production": {}

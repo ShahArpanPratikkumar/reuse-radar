@@ -21,15 +21,22 @@
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png"
       },
+      "package": "com.arpanshah23.ReUseRadar",
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyReUseRadarCampusMarketplaceKey2026"
+        }
+      },
       "permissions": [
-        "CAMERA",
-        "ACCESS_FINE_LOCATION",
-        "ACCESS_COARSE_LOCATION",
-        "READ_CONTACTS",
-        "READ_EXTERNAL_STORAGE",
-        "READ_MEDIA_IMAGES",
-        "NOTIFICATIONS",
-        "POST_NOTIFICATIONS"
+        "android.permission.CAMERA",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.READ_CONTACTS",
+        "android.permission.WRITE_CONTACTS",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.RECORD_AUDIO"
       ],
       "predictiveBackGestureEnabled": false
     },
@@ -77,8 +84,19 @@
           "cameraPermission": "ReUse Radar needs camera access to photograph reusable items."
         }
       ],
-      "expo-notifications",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/icon.png",
+          "color": "#059669"
+        }
+      ],
       "expo-sharing"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "d36e1294-55e6-4a11-a855-360ab8de161c"
+      }
+    }
   }
 }

@@ -110,6 +110,9 @@ export const getApiBaseUrlCandidates = () => {
   // Priority 1: Explicitly set environment variable (production Vercel, Render backend, or custom IP)
   add(process.env.EXPO_PUBLIC_API_URL);
 
+  // Fallback to live production Render deployment for mobile standalone APK
+  add('https://reuse-radar.onrender.com/api');
+
   // On web (local Expo web dev), fallback to localhost if env is not explicitly set
   if (Platform.OS === 'web') {
     add('http://localhost:5000');
