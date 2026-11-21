@@ -91,6 +91,12 @@
           "color": "#059669"
         }
       ],
+      [
+        "react-native-maps",
+        {
+          "androidGoogleMapsApiKey": "AIzaSyReUseRadarCampusMarketplaceKey2026"
+        }
+      ],
       "expo-sharing"
     ],
     "extra": {

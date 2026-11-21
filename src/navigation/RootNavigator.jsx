@@ -65,32 +65,16 @@ const RootNavigator = () => {
     SplashScreen.hideAsync().catch(() => {}); // .catch() prevents errors if already hidden
   }, []);
 
-  // =============================================================================
-  // renderNavigator() — Decides which navigator to show
-  // This runs every time isLoading or isAuthenticated changes (via AuthContext).
-  // React Navigation automatically handles the transition between navigators.
-  // =============================================================================
-
-  const renderNavigator = () => {
-    if (isLoading) {
-      // Session is still being restored from AsyncStorage — show branded splash
-      return <SplashScreenComponent />;
-    }
-    if (isAuthenticated) {
-      // Valid JWT found and user is logged in — show the full app
-      return <MainNavigator />;
-    }
-    // No valid session — show auth flow (Welcome → Login / Register)
-    return <AuthNavigator />;
-  };
+  // If still loading session from storage, display the animated branded splash screen directly
+  if (isLoading) {
+    return <SplashScreenComponent />;
+  }
 
   return (
     <View style={styles.container}>
       {/* ── Offline Alert Banner ─────────────────────────────────────────────
           Shown as a persistent red bar at the top when the backend is unreachable.
           The user can tap "Retry" to manually trigger a health check.
-          isConnected is set by useNetworkStatus's health ping.
-          Note: !isConnected shows the banner (shown when offline)
       */}
       {!isConnected ? (
         <View style={styles.offlineBanner}>
@@ -114,9 +98,9 @@ const RootNavigator = () => {
 
       {/* NavigationContainer is the REQUIRED wrapper for all React Navigation navigators.
           It manages the navigation state and deep linking.
-          IMPORTANT: There can only be ONE NavigationContainer in the entire app. */}
+          Only valid Navigators (MainNavigator or AuthNavigator) are rendered inside. */}
       <NavigationContainer>
-        {renderNavigator()}
+        {isAuthenticated ? <MainNavigator /> : <AuthNavigator />}
       </NavigationContainer>
     </View>
   );
