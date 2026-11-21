@@ -33,6 +33,16 @@
       ],
       "predictiveBackGestureEnabled": false
     },
+    "platforms": [
+      "ios",
+      "android",
+      "web"
+    ],
+    "web": {
+      "bundler": "metro",
+      "output": "single",
+      "favicon": "./assets/images/favicon.png"
+    },
     "plugins": [
       [
         "expo-splash-screen",
