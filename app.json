@@ -97,6 +97,7 @@
           "androidGoogleMapsApiKey": "AIzaSyReUseRadarCampusMarketplaceKey2026"
         }
       ],
+      "./plugins/withDisableMinify.js",
       "expo-sharing"
     ],
     "extra": {
