@@ -107,14 +107,14 @@ export const getApiBaseUrlCandidates = () => {
     if (normalized && !candidates.includes(normalized)) candidates.push(normalized);
   };
 
-  // On web (Expo web), the backend is always on localhost
+  // Priority 1: Explicitly set environment variable (production Vercel, Render backend, or custom IP)
+  add(process.env.EXPO_PUBLIC_API_URL);
+
+  // On web (local Expo web dev), fallback to localhost if env is not explicitly set
   if (Platform.OS === 'web') {
     add('http://localhost:5000');
     return candidates;
   }
-
-  // Priority 1: Developer's explicitly set environment variable
-  add(process.env.EXPO_PUBLIC_API_URL);
 
   // Priority 2: Auto-discovered LAN IP from Expo dev server manifest
   const devHost = getExpoDevHost();

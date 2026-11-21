@@ -200,7 +200,6 @@ const ItemDetailsScreen = ({ route, navigation }) => {
       setLoading(false);
     }
   }, [itemId, paramItem]);
-  }, [itemId, paramItem]);
 
   // Check if item is already bookmarked in user's favorites
   const checkInitialFavorite = useCallback(async () => {
