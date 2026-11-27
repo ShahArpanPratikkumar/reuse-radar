@@ -28,6 +28,7 @@ import { AuthContext } from '../context/AuthContext';
 // Service communicating with backend items and messaging APIs
 import { itemService } from '../services/itemService';
 import { messageService } from '../services/messageService';
+import { wishlistService } from '../services/wishlistService';
 import ItemCard from '../components/ItemCard';
 import LoadingSpinner from '../components/LoadingSpinner';
 import EmptyState from '../components/EmptyState';
@@ -79,6 +80,7 @@ const HomeScreen = ({ navigation }) => {
   // Listing data states
   const [items, setItems] = useState([]);
   const [hotItems, setHotItems] = useState([]);
+  const [urgentRequests, setUrgentRequests] = useState([]);
   const [categoryCounts, setCategoryCounts] = useState({});
   const [totalListings, setTotalListings] = useState(0);
 
@@ -347,9 +349,21 @@ const HomeScreen = ({ navigation }) => {
     };
   }, []);
 
+  const fetchUrgentRequests = useCallback(async () => {
+    try {
+      const res = await wishlistService.getWishlistFeed({ status: 'active', limit: 6 });
+      if (res && res.success) {
+        setUrgentRequests(res.wishlists || []);
+      }
+    } catch (e) {
+      // Silent background error
+    }
+  }, []);
+
   useEffect(() => {
     fetchHot();
-  }, [fetchHot]);
+    fetchUrgentRequests();
+  }, [fetchHot, fetchUrgentRequests]);
 
   // Mechanism 6: Debounced Search Input Handling
   useEffect(() => {
@@ -361,6 +375,7 @@ const HomeScreen = ({ navigation }) => {
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', async () => {
       fetchHot();
+      fetchUrgentRequests();
       try {
         const res = await messageService.getConversations();
         if (res && res.success) {
@@ -570,6 +585,62 @@ const HomeScreen = ({ navigation }) => {
           <Text style={styles.requestCtaPlus}>＋</Text>
         </View>
       </TouchableOpacity>
+
+      {/* Live Campus Urgent Requests Rail */}
+      {urgentRequests.length > 0 ? (
+        <View style={styles.sectionBlock}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>📣 Urgent Campus Requests</Text>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('Explore', { openRequestsFeed: true, refreshAt: Date.now() })}
+            >
+              <Text style={styles.sectionLink}>See all →</Text>
+            </TouchableOpacity>
+          </View>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ gap: 10, paddingRight: 8 }}
+          >
+            {urgentRequests.map((reqItem) => (
+              <TouchableOpacity
+                key={reqItem._id}
+                style={styles.urgentReqCard}
+                onPress={() => navigation.navigate('Explore', { openRequestsFeed: true, refreshAt: Date.now() })}
+                activeOpacity={0.85}
+              >
+                <View style={styles.urgentReqTop}>
+                  <View
+                    style={[
+                      styles.urgentBadge,
+                      reqItem.urgency === 'High' ? styles.urgentBadgeHigh : styles.urgentBadgeMed,
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.urgentBadgeText,
+                        reqItem.urgency === 'High' ? styles.urgentTextHigh : styles.urgentTextMed,
+                      ]}
+                    >
+                      {reqItem.urgency === 'High' ? '🔥 URGENT' : '🕒 NEEDED'}
+                    </Text>
+                  </View>
+                  <Text style={styles.urgentCategory}>{reqItem.category}</Text>
+                </View>
+                <Text style={styles.urgentTitle} numberOfLines={1}>
+                  {reqItem.title}
+                </Text>
+                <Text style={styles.urgentDesc} numberOfLines={2}>
+                  {reqItem.description}
+                </Text>
+                <Text style={styles.urgentMeta} numberOfLines={1}>
+                  By {reqItem.requester?.name || 'Campus Student'}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+      ) : null}
 
       {/* Hot Discoveries Nearby Rail */}
       {hotItems.length > 0 ? (
@@ -1114,6 +1185,68 @@ const styles = StyleSheet.create({
     fontWeight: '900',
     color: '#BEF264',
     letterSpacing: 0.6,
+  },
+  urgentReqCard: {
+    width: 220,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: '#D1FAE5',
+    shadowColor: '#064E3B',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  urgentReqTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 6,
+  },
+  urgentBadge: {
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+    borderRadius: 8,
+  },
+  urgentBadgeHigh: {
+    backgroundColor: '#FEE2E2',
+  },
+  urgentBadgeMed: {
+    backgroundColor: '#FEF3C7',
+  },
+  urgentBadgeText: {
+    fontSize: 9,
+    fontWeight: '900',
+  },
+  urgentTextHigh: {
+    color: '#B91C1C',
+  },
+  urgentTextMed: {
+    color: '#92400E',
+  },
+  urgentCategory: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#059669',
+  },
+  urgentTitle: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#064E3B',
+    marginBottom: 3,
+  },
+  urgentDesc: {
+    fontSize: 11,
+    color: '#475569',
+    lineHeight: 15,
+    marginBottom: 6,
+  },
+  urgentMeta: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#64748B',
   },
 });
 

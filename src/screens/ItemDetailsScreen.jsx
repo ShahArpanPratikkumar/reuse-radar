@@ -48,7 +48,7 @@ import { reportService } from '../services/reportService';
 // Color palette constants
 import { COLORS } from '../utils/constants';
 // Dynamic backend upload URL resolver
-import { getImageBaseUrl } from '../services/apiConfig';
+import { getImageBaseUrl, resolveImageUri } from '../services/apiConfig';
 // Verified student badge UI component
 import VerifiedBadge from '../components/VerifiedBadge';
 
@@ -427,17 +427,15 @@ const ItemDetailsScreen = ({ route, navigation }) => {
   const imageUris = (Array.isArray(item?.images) ? item.images : [])
     .filter((path) => typeof path === 'string' && path.trim())
     .slice(0, 5)
-    .map((path) => {
-      if (/^(https?:|data:|blob:)/i.test(path)) return path;
-      return `${IMAGE_BASE_URL}${path.startsWith('/') ? '' : '/'}${path}`;
-    });
+    .map((path) => resolveImageUri(path))
+    .filter(Boolean);
   if (imageUris.length === 0) imageUris.push(FALLBACK_IMAGE);
   const carouselWidth = width - 32;
 
   const isOwner = user && item?.donor && (user._id === item.donor._id || user._id === item.donor);
 
   // ── Direct Connect (Buyer ⇄ Seller) ──
-  const contactPerson = activeRequest?.receiver || null;
+  const contactPerson = activeRequest ? (activeRequest.receiver || item?.donor || null) : null;
   const rawContactPhone = String(contactPerson?.phone || '').trim();
   const contactDigits = rawContactPhone.replace(/[^\d]/g, '');
   const contactPhonePretty = contactDigits
@@ -445,26 +443,32 @@ const ItemDetailsScreen = ({ route, navigation }) => {
     : '';
   const mutualDistance = distanceLabel(metersBetween(activeRequest?.sender, contactPerson));
 
-  const handleCallContact = () => {
+  const handleCallContact = async () => {
     if (!contactDigits) {
       Alert.alert('No Number', 'This student has not added a contact number yet.');
       return;
     }
     const tel = contactDigits.length === 10 ? `+91${contactDigits}` : `+${contactDigits}`;
-    Linking.openURL(`tel:${tel}`).catch(() =>
-      Alert.alert('Call Failed', 'Your device could not place this call.')
-    );
+    try {
+      await Linking.openURL(`tel:${tel}`);
+    } catch {
+      Alert.alert('Call Failed', 'Your device could not place this call.');
+    }
   };
 
-  const handleWhatsAppContact = () => {
+  const handleWhatsAppContact = async () => {
     if (!contactDigits) {
       Alert.alert('No Number', 'This student has not added a contact number yet.');
       return;
     }
     const wa = contactDigits.length === 10 ? `91${contactDigits}` : contactDigits;
-    Linking.openURL(`https://wa.me/${wa}`).catch(() =>
-      Alert.alert('WhatsApp Unavailable', 'WhatsApp could not be opened on this device.')
-    );
+    try {
+      await Linking.openURL(`whatsapp://send?phone=${wa}`);
+    } catch {
+      Linking.openURL(`https://wa.me/${wa}`).catch(() =>
+        Alert.alert('WhatsApp Unavailable', 'WhatsApp could not be opened on this device.')
+      );
+    }
   };
 
   const handleDirections = () => {

@@ -77,7 +77,11 @@ const RequestItemScreen = ({ navigation, route }) => {
           [
             {
               text: 'See Campus Requests',
-              onPress: () => navigation.navigate('Explore', { openRequestsFeed: true }),
+              onPress: () =>
+                navigation.navigate('MainTabs', {
+                  screen: 'Explore',
+                  params: { openRequestsFeed: true, refreshAt: Date.now() },
+                }),
             },
           ]
         );

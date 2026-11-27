@@ -23,6 +23,7 @@ import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'rea
 // NavigationContainer is the root wrapper for ALL React Navigation navigators
 // It provides the navigation context to all child navigators and screens
 import { NavigationContainer } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // expo-splash-screen: controls when the native OS loading screen is hidden
 import * as SplashScreen from 'expo-splash-screen';
@@ -47,6 +48,7 @@ import MainNavigator from './MainNavigator';
 // =============================================================================
 
 const RootNavigator = () => {
+  const insets = useSafeAreaInsets();
   // isLoading: true while checking AsyncStorage for saved JWT token on app boot
   // isAuthenticated: true when a valid JWT + user data is found in AsyncStorage
   const { isLoading, isAuthenticated } = useContext(AuthContext);
@@ -77,7 +79,7 @@ const RootNavigator = () => {
           The user can tap "Retry" to manually trigger a health check.
       */}
       {!isConnected ? (
-        <View style={styles.offlineBanner}>
+        <View style={[styles.offlineBanner, { paddingTop: Math.max(insets.top, 8) + 6 }]}>
           <Text style={styles.offlineText}>
             ⚠️ {offlineMessage || 'No internet connection. Some features may be unavailable.'}
           </Text>

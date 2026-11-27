@@ -27,8 +27,8 @@ import Constants from 'expo-constants';
 // The backend Express server runs on port 5000
 export const API_PORT = 5000;
 
-// Maximum time to wait for a health ping before giving up on a candidate URL
-const HEALTH_TIMEOUT_MS = 2500; // 2.5 seconds
+// Maximum time to wait for a health ping before giving up on a candidate URL (15s for Render cold starts)
+const HEALTH_TIMEOUT_MS = 15000; // 15 seconds
 
 // =============================================================================
 // Helper: Normalize a raw URL string to a clean API base URL
@@ -176,7 +176,7 @@ const pingOnce = async (baseUrl, timeoutMs) => {
 };
 
 // Public health check for useNetworkStatus hook
-export const checkServerHealth = async (timeoutMs = 4000) => {
+export const checkServerHealth = async (timeoutMs = 20000) => {
   const baseUrl = await resolveApiBaseUrl(); // Use the already-resolved URL
   return pingOnce(baseUrl, timeoutMs);
 };
@@ -233,19 +233,30 @@ export const getImageBaseUrl = () => {
   // Example: "http://192.168.1.185:5000/api" → "http://192.168.1.185:5000"
 };
 
-// Converts a possibly-relative path to an absolute image URL
+// Converts a possibly-relative path (or stale local LAN URL) to an absolute image URL
 export const resolveImageUri = (path) => {
   if (!path || typeof path !== 'string') return null;
 
-  // If already an absolute URL (http/https/data/blob), return as-is
-  if (/^(https?:|data:|blob:)/i.test(path)) return path;
+  const trimmed = path.trim();
+  if (!trimmed) return null;
+
+  // Data URIs and blob URIs work directly everywhere
+  if (/^(data:|blob:)/i.test(trimmed)) return trimmed;
 
   const base = getImageBaseUrl();
 
-  // Combine base + path, handling whether path starts with / or not
-  return `${base}${path.startsWith('/') ? '' : '/'}${path}`;
-  // Example: "http://192.168.1.185:5000" + "/uploads/item-123.jpg"
-  //          → "http://192.168.1.185:5000/uploads/item-123.jpg"
+  // If a listing stored a stale local dev URL (http://localhost:... or http://192.168.x.x:...),
+  // rewrite its /uploads/... path to point at the active production backend
+  if (/^https?:\/\/(localhost|127\.0\.0\.1|10\.0\.2\.2|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+)(:\d+)?(\/uploads\/.*)/i.test(trimmed)) {
+    const match = trimmed.match(/(\/uploads\/.*)$/i);
+    if (match) return `${base}${match[1]}`;
+  }
+
+  // If already an external https/http URL, return as-is
+  if (/^https?:/i.test(trimmed)) return trimmed;
+
+  // Combine base + relative path, handling whether path starts with / or not
+  return `${base}${trimmed.startsWith('/') ? '' : '/'}${trimmed}`;
 };
 
 // =============================================================================

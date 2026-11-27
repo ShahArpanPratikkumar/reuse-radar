@@ -54,9 +54,9 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#064E3B",
+          "backgroundColor": "#F0FDF4",
           "image": "./assets/images/splash-icon.png",
-          "imageWidth": 120
+          "imageWidth": 130
         }
       ],
       [
@@ -98,6 +98,7 @@
         }
       ],
       "./plugins/withDisableMinify.js",
+      "./plugins/withAndroidQueries.js",
       "expo-sharing"
     ],
     "extra": {

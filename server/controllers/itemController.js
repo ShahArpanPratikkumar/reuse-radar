@@ -11,8 +11,26 @@
 //   7. Karma reward point allocation upon creating donations (+10 Karma)
 // =============================================================================
 
+const fs = require('fs');
+
 // Import the Item Mongoose model (MongoDB schema for items, tags, geo-location, images)
 const Item = require('../models/Item');
+
+// Converts an uploaded Multer disk file to a persistent Base64 Data URI so Render's
+// ephemeral filesystem never loses item photos on restart/sleep.
+const fileToDataUri = (file) => {
+  try {
+    if (file && file.path && fs.existsSync(file.path)) {
+      const base64 = fs.readFileSync(file.path).toString('base64');
+      const mime = file.mimetype || 'image/jpeg';
+      fs.unlink(file.path, () => {});
+      return `data:${mime};base64,${base64}`;
+    }
+  } catch (e) {
+    // Fallback to relative path if disk read fails
+  }
+  return file?.filename ? `/uploads/${file.filename}` : null;
+};
 
 // Import the User Mongoose model (user profile, karma points, verified badges)
 const User = require('../models/User');
@@ -184,8 +202,8 @@ exports.createItem = async (req, res) => {
     // Process image paths from Multer multipart upload or fallback JSON fields
     let imagePaths = [];
     if (req.files && req.files.length > 0) {
-      // Multer disk storage: map each uploaded file to public URL path
-      imagePaths = req.files.map((file) => `/uploads/${file.filename}`);
+      // Convert uploaded images to persistent Base64 Data URIs stored in MongoDB
+      imagePaths = req.files.map(fileToDataUri).filter(Boolean);
     } else if (req.body.images) {
       // Legacy JSON images array
       imagePaths = Array.isArray(req.body.images) ? req.body.images : [req.body.images];
@@ -778,7 +796,7 @@ exports.updateItem = async (req, res) => {
     // If new files were uploaded via Multer, merge with preserved existing images
     if ((req.files && req.files.length > 0) || rawExistingImages !== undefined) {
       const uploadedImages = req.files
-        ? req.files.map((file) => `/uploads/${file.filename}`)
+        ? req.files.map(fileToDataUri).filter(Boolean)
         : [];
       item.images = [...keptImages, ...uploadedImages].slice(0, 5);
     } else if (req.body.images) {

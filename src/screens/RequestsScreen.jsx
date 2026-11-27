@@ -28,16 +28,15 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-// Service layer communicating with /api/requests endpoints
+// Service layer communicating with /api/requests and /api/wishlist endpoints
 import { requestService } from '../services/requestService';
+import { wishlistService } from '../services/wishlistService';
 import EmptyState from '../components/EmptyState';
 import LoadingSpinner from '../components/LoadingSpinner';
 import VerifiedBadge from '../components/VerifiedBadge';
 import { COLORS } from '../utils/constants';
 import { AuthContext } from '../context/AuthContext';
-import { getImageBaseUrl } from '../services/apiConfig';
-
-const IMAGE_BASE_URL = getImageBaseUrl();
+import { resolveImageUri } from '../services/apiConfig';
 
 // Direct Connect helpers: phone formatting and relative campus distance
 const digitsOnly = (phone = '') => String(phone).replace(/[^\d]/g, '');
@@ -93,15 +92,6 @@ const formatDistanceLabel = (meters) => {
   return `${(meters / 1000).toFixed(1)} km away on campus`;
 };
 
-// Helper: Resolves image paths from relative to full URL
-const resolveImageUri = (raw) => {
-  if (!raw || typeof raw !== 'string') return null;
-  if (raw.startsWith('http://') || raw.startsWith('https://') || raw.startsWith('data:')) {
-    return raw;
-  }
-  return `${IMAGE_BASE_URL}${raw.startsWith('/') ? '' : '/'}${raw}`;
-};
-
 export const RequestsScreen = ({ navigation }) => {
   const { token } = useContext(AuthContext);
 
@@ -129,6 +119,11 @@ export const RequestsScreen = ({ navigation }) => {
       return;
     }
     try {
+      if (activeTab === 'campus') {
+        const res = await wishlistService.getWishlistFeed({ status: 'active' });
+        setRequests(res && res.success ? res.wishlists || [] : []);
+        return;
+      }
       const statusParam = filterStatus === 'All' ? 'all' : filterStatus.toLowerCase();
       let res;
       if (activeTab === 'sent') {
@@ -295,8 +290,43 @@ export const RequestsScreen = ({ navigation }) => {
     }
   };
 
-  // Mechanism 6: Render Exchange Request Card
+  // Mechanism 6: Render Exchange Request Card (or Campus Need Card)
   const renderRequestCard = ({ item }) => {
+    if (activeTab === 'campus') {
+      const urgencyHigh = item.urgency === 'High';
+      return (
+        <View style={styles.card}>
+          <View style={styles.cardMeta}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+              <Text style={[styles.categoryBadge, { backgroundColor: urgencyHigh ? '#FEE2E2' : '#FEF3C7', color: urgencyHigh ? '#B91C1C' : '#92400E', paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 }]}>
+                {urgencyHigh ? '🔥 HIGH URGENCY' : '🕒 MEDIUM'}
+              </Text>
+              <Text style={styles.categoryBadge}>{item.category || 'General'}</Text>
+            </View>
+            <Text style={styles.itemTitle} numberOfLines={2}>
+              {item.title || 'Requested Item'}
+            </Text>
+            <Text style={[styles.messageText, { marginTop: 4 }]} numberOfLines={3}>
+              {item.description}
+            </Text>
+            <Text style={[styles.personLabel, { marginTop: 8 }]}>
+              Requested by {item.requester?.name || 'Campus Student'}
+              {item.requester?.department ? ` • ${item.requester.department}` : ''}
+            </Text>
+          </View>
+          <View style={styles.actionRow}>
+            <TouchableOpacity
+              style={[styles.acceptBtn, { flex: 1 }]}
+              onPress={() => navigation.navigate('AddItem')}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.acceptBtnText}>🎁 I Have This — List Item</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      );
+    }
+
     const badgeStyle = getStatusColor(item.status);
     const itemData = item.item || {};
     const requester = item.requester || item.sender || {};
@@ -307,8 +337,7 @@ export const RequestsScreen = ({ navigation }) => {
 
     let imageUri = 'https://images.unsplash.com/photo-1532012164546-f432f2e3777a?auto=format&fit=crop&w=600&q=80';
     if (itemData.images && itemData.images.length > 0) {
-      const first = itemData.images[0];
-      imageUri = first.startsWith('http') ? first : `${IMAGE_BASE_URL}${first.startsWith('/') ? '' : '/'}${first}`;
+      imageUri = resolveImageUri(itemData.images[0]) || imageUri;
     }
 
     const timeAgo = item.createdAt
@@ -343,15 +372,20 @@ export const RequestsScreen = ({ navigation }) => {
       );
     };
 
-    const handleWhatsApp = () => {
+    const handleWhatsApp = async () => {
       const wa = normalizedPhone(contactPhone);
       if (!wa) {
         Alert.alert('No Number', 'This student has not added a contact number yet.');
         return;
       }
-      Linking.openURL(`https://wa.me/${wa.replace('+', '')}`).catch(() =>
-        Alert.alert('WhatsApp Unavailable', 'WhatsApp could not be opened on this device.')
-      );
+      const cleanWa = wa.replace('+', '');
+      try {
+        await Linking.openURL(`whatsapp://send?phone=${cleanWa}`);
+      } catch {
+        Linking.openURL(`https://wa.me/${cleanWa}`).catch(() =>
+          Alert.alert('WhatsApp Unavailable', 'WhatsApp could not be opened on this device.')
+        );
+      }
     };
 
     const handleDirections = () => {
@@ -681,12 +715,31 @@ export const RequestsScreen = ({ navigation }) => {
               activeTab === 'received' && styles.segmentTextActive,
             ]}
           >
-            Incoming Claims {activeTab === 'received' ? `(${requests.length})` : ''}
+            Incoming {activeTab === 'received' ? `(${requests.length})` : ''}
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[
+            styles.segmentBtn,
+            activeTab === 'campus' && styles.segmentBtnActive,
+          ]}
+          onPress={() => setActiveTab('campus')}
+          activeOpacity={0.8}
+        >
+          <Text
+            style={[
+              styles.segmentText,
+              activeTab === 'campus' && styles.segmentTextActive,
+            ]}
+          >
+            📣 Campus {activeTab === 'campus' ? `(${requests.length})` : ''}
           </Text>
         </TouchableOpacity>
       </View>
 
-      {/* Status Filter Horizontal Chips */}
+      {/* Status Filter Horizontal Chips (only for sent/received item claims) */}
+      {activeTab !== 'campus' ? (
       <View style={styles.filterPillsContainer}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterScroll}>
           {['All', 'Pending', 'Accepted', 'Completed', 'Rejected'].map((status) => (
@@ -711,6 +764,7 @@ export const RequestsScreen = ({ navigation }) => {
           ))}
         </ScrollView>
       </View>
+      ) : null}
 
       {/* Requests FlatList or Loading / Empty Component */}
       {loading ? (
@@ -727,17 +781,35 @@ export const RequestsScreen = ({ navigation }) => {
           }
           ListEmptyComponent={
             <EmptyState
-              icon={activeTab === 'sent' ? '📦' : '📬'}
-              title={activeTab === 'sent' ? 'No Sent Requests' : 'No Incoming Claims'}
-              description={
-                filterStatus === 'All'
-                  ? activeTab === 'sent'
-                    ? 'You have not requested any items yet. Explore nearby items on the Radar!'
-                    : 'No students have requested your items yet. List more items to share circular resources.'
-                  : `No requests with status "${filterStatus}".`
+              icon={activeTab === 'campus' ? '📣' : activeTab === 'sent' ? '📦' : '📬'}
+              title={
+                activeTab === 'campus'
+                  ? 'No Campus Urgent Requests'
+                  : activeTab === 'sent'
+                    ? 'No Sent Requests'
+                    : 'No Incoming Claims'
               }
-              actionText={activeTab === 'sent' ? 'Explore Items' : '+ List Free Item'}
-              onAction={() => navigation.navigate(activeTab === 'sent' ? 'Explore' : 'AddItem')}
+              description={
+                activeTab === 'campus'
+                  ? 'Nobody has posted an urgent need yet. Tap below to request an item!'
+                  : filterStatus === 'All'
+                    ? activeTab === 'sent'
+                      ? 'You have not requested any items yet. Explore nearby items on the Radar!'
+                      : 'No students have requested your items yet. List more items to share circular resources.'
+                    : `No requests with status "${filterStatus}".`
+              }
+              actionText={
+                activeTab === 'campus'
+                  ? '+ Post Urgent Request'
+                  : activeTab === 'sent'
+                    ? 'Explore Items'
+                    : '+ List Free Item'
+              }
+              onAction={() =>
+                navigation.navigate(
+                  activeTab === 'campus' ? 'RequestItem' : activeTab === 'sent' ? 'Explore' : 'AddItem'
+                )
+              }
             />
           }
         />

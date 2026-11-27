@@ -182,15 +182,19 @@ const UserProfileScreen = ({ route, navigation }) => {
   };
 
   // Mechanism 4: WhatsApp Deep Linking Action
-  const handleWhatsApp = () => {
+  const handleWhatsApp = async () => {
     if (!phoneDigits) {
       Alert.alert('WhatsApp Unavailable', 'Phone numbers unlock once you have an active exchange with this student.');
       return;
     }
     const wa = phoneDigits.length === 10 ? `91${phoneDigits}` : phoneDigits;
-    Linking.openURL(`https://wa.me/${wa}`).catch(() =>
-      Alert.alert('WhatsApp Unavailable', 'WhatsApp could not be opened on this device.')
-    );
+    try {
+      await Linking.openURL(`whatsapp://send?phone=${wa}`);
+    } catch {
+      Linking.openURL(`https://wa.me/${wa}`).catch(() =>
+        Alert.alert('WhatsApp Unavailable', 'WhatsApp could not be opened on this device.')
+      );
+    }
   };
 
   // Mechanism 5: Open Direct Chat with Student

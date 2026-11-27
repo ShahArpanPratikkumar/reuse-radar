@@ -266,8 +266,9 @@ const ExploreScreen = ({ route, navigation }) => {
   useEffect(() => {
     if (route.params?.openRequestsFeed) {
       setFeedTab('requests');
+      fetchWishlistFeed();
     }
-  }, [route.params?.openRequestsFeed]);
+  }, [route.params?.openRequestsFeed, route.params?.refreshAt]);
 
   // ===========================================================================
   // DATA FETCHING: CAMPUS WISHLIST REQUESTS FEED

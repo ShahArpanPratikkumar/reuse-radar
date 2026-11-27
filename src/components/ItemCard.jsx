@@ -40,35 +40,11 @@ import VerifiedBadge from './VerifiedBadge';
 // Design system color palette
 import { COLORS } from '../utils/constants';
 
-// getImageBaseUrl: returns the backend server origin for building image URLs
-import { getImageBaseUrl } from '../services/apiConfig';
-
-// =============================================================================
-// Image URL Resolution
-// IMAGE_BASE_URL is computed once at component load time from the resolved backend host.
-// Example: "http://192.168.1.185:5000"
-// =============================================================================
-
-// Resolved at runtime from the active API host — never a hardcoded LAN IP.
-const IMAGE_BASE_URL = getImageBaseUrl();
+// resolveImageUri: converts relative/stale server paths to live absolute image URLs
+import { resolveImageUri } from '../services/apiConfig';
 
 // Fallback image shown when item has no photo or the photo fails to load
 const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1532012164546-f432f2e3777a?auto=format&fit=crop&w=600&q=80';
-
-// =============================================================================
-// Helper: resolveImageUri
-// Converts a possibly-relative server path to a full image URL.
-// Relative paths from the server look like: "/uploads/item-123.jpg"
-// Full URL needed by React Native <Image>: "http://192.168.1.185:5000/uploads/item-123.jpg"
-// =============================================================================
-
-const resolveImageUri = (path) => {
-  if (!path || typeof path !== 'string') return null;
-  // If already a full URL (http:// or https://), return as-is
-  if (path.startsWith('http://') || path.startsWith('https://')) return path;
-  // Combine base URL + path, handling leading slash
-  return `${IMAGE_BASE_URL}${path.startsWith('/') ? '' : '/'}${path}`;
-};
 
 // =============================================================================
 // Helper: tapFeedback
@@ -122,6 +98,13 @@ const ItemCard = ({
   // toggling: prevents double-taps while the API request is in-flight
   const [toggling, setToggling] = useState(false);
 
+  // imgError: falls back to FALLBACK_IMAGE if remote image fails to load
+  const [imgError, setImgError] = useState(false);
+
+  useEffect(() => {
+    setImgError(false);
+  }, [item?._id, item?.images?.[0]]);
+
   // Sync the heart state if the parent updates isFavoriteInitial
   // (e.g., when navigating to FavoritesScreen and removing items)
   useEffect(() => {
@@ -134,9 +117,9 @@ const ItemCard = ({
   if (!item) return null;
 
   // ── Image Resolution ───────────────────────────────────────────────────────
-  // Use the first image from the item's images array, with fallback if none
+  // Use the first image from the item's images array, with fallback if none or broken
   let imageUri = FALLBACK_IMAGE;
-  if (item.images && item.images.length > 0) {
+  if (!imgError && item.images && item.images.length > 0) {
     imageUri = resolveImageUri(item.images[0]) || FALLBACK_IMAGE;
   }
 
@@ -298,7 +281,12 @@ const ItemCard = ({
       {/* ── Image Section with Overlay Badges ─────────────────────────── */}
       <View style={[styles.imageWrap, isGrid ? styles.imageWrapGrid : styles.imageWrapFull]}>
         {/* Item photo — fills the entire image container */}
-        <Image source={{ uri: imageUri }} style={styles.image} resizeMode="cover" />
+        <Image
+          source={{ uri: imageUri }}
+          style={styles.image}
+          resizeMode="cover"
+          onError={() => setImgError(true)}
+        />
 
         {/* Top-left badge: Distance from user (e.g., "🧭 2.3 km") */}
         <View style={styles.distancePill}>

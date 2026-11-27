@@ -114,9 +114,9 @@ export const useNetworkStatus = () => {
 
     let healthy = false;
     try {
-      // checkServerHealth() pings GET /api/health with a 5-second timeout
+      // checkServerHealth() pings GET /api/health with a 20-second timeout (supports Render cold starts)
       // Returns true if response is 200 OK, false otherwise
-      healthy = await checkServerHealth(5000);
+      healthy = await checkServerHealth(20000);
     } catch (e) {
       healthy = false; // Any exception = treat as unhealthy
     }
@@ -139,15 +139,14 @@ export const useNetworkStatus = () => {
       // Next checkConnection will re-discover and test all candidates
       invalidateApiBaseUrl();
 
-      setIsConnected(false); // Show the offline banner
-
-      // Show a progressively more informative message
-      setOfflineMessage(
-        failuresRef.current <= 1
-          ? 'Cannot reach the server. Retrying automatically…'
-          : `Still offline — retrying automatically (${getApiBaseUrlSync()}).`
-          // Shows the current candidate URL being tried (useful for debugging)
-      );
+      // Only show the red offline banner after 2 consecutive failures so a brief
+      // Render free-tier cold start doesn't flash a false offline warning on boot
+      if (failuresRef.current >= 2) {
+        setIsConnected(false);
+        setOfflineMessage(
+          `Cannot reach server — retrying automatically (${getApiBaseUrlSync()}).`
+        );
+      }
     }
 
     setIsReconnecting(false); // Hide the spinner
