@@ -93,12 +93,13 @@ const formatDistanceLabel = (meters) => {
 };
 
 export const RequestsScreen = ({ navigation }) => {
-  const { token } = useContext(AuthContext);
+  const { token, user } = useContext(AuthContext);
 
   // Active tab state: 'sent' = My Outgoing Requests, 'received' = Received Incoming Claims
   const [activeTab, setActiveTab] = useState('sent');
   const [filterStatus, setFilterStatus] = useState('All');
   const [requests, setRequests] = useState([]);
+  const [dismissedWishlistIds, setDismissedWishlistIds] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -274,6 +275,35 @@ export const RequestsScreen = ({ navigation }) => {
     );
   };
 
+  // Mechanism 6: Delete Own Campus Wishlist Request
+  const handleDeleteWishlist = (wishlistId) => {
+    Alert.alert(
+      'Delete Campus Request?',
+      'Got the item or no longer need it? This will remove your request.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Yes, Delete',
+          style: 'destructive',
+          onPress: async () => {
+            setActionLoadingId(wishlistId);
+            try {
+              const res = await wishlistService.deleteWishlist(wishlistId);
+              if (res && res.success) {
+                setRequests((prev) => prev.filter((r) => r._id !== wishlistId));
+                Alert.alert('Deleted', 'Your campus request has been removed.');
+              }
+            } catch (err) {
+              Alert.alert('Error', err.message || 'Could not delete request.');
+            } finally {
+              setActionLoadingId(null);
+            }
+          },
+        },
+      ]
+    );
+  };
+
   // Status badge styling helper
   const getStatusColor = (status = 'pending') => {
     switch (status.toLowerCase()) {
@@ -293,7 +323,38 @@ export const RequestsScreen = ({ navigation }) => {
   // Mechanism 6: Render Exchange Request Card (or Campus Need Card)
   const renderRequestCard = ({ item }) => {
     if (activeTab === 'campus') {
+      if (dismissedWishlistIds.includes(item._id)) return null;
       const urgencyHigh = item.urgency === 'High';
+      const isOwner = Boolean(
+        user?._id && item.requester?._id && String(item.requester._id) === String(user._id)
+      );
+
+      const openRequesterChat = () => {
+        if (!item.requester?._id) {
+          Alert.alert('Chat Unavailable', 'Requester details are unavailable.');
+          return;
+        }
+        navigation.navigate('Chat', {
+          itemId: item._id,
+          recipientId: item.requester._id,
+          recipientName: item.requester.name || 'Campus Student',
+          recipientVerified: Boolean(item.requester.isVerified),
+          itemTitle: item.title || 'Campus Request',
+        });
+      };
+
+      const handleYesHaveIt = () => {
+        Alert.alert(
+          '✅ Yes, I Have This!',
+          `Let ${item.requester?.name || 'your campus mate'} know you have "${item.title}".`,
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { text: '📦 List Item', onPress: () => navigation.navigate('AddItem') },
+            { text: '💬 Message Now', onPress: openRequesterChat },
+          ]
+        );
+      };
+
       return (
         <View style={styles.card}>
           <View style={styles.cardMeta}>
@@ -310,19 +371,48 @@ export const RequestsScreen = ({ navigation }) => {
               {item.description}
             </Text>
             <Text style={[styles.personLabel, { marginTop: 8 }]}>
-              Requested by {item.requester?.name || 'Campus Student'}
-              {item.requester?.department ? ` • ${item.requester.department}` : ''}
+              {isOwner ? 'Your Request' : `Requested by ${item.requester?.name || 'Campus Student'}`}
+              {!isOwner && item.requester?.department ? ` • ${item.requester.department}` : ''}
             </Text>
           </View>
-          <View style={styles.actionRow}>
-            <TouchableOpacity
-              style={[styles.acceptBtn, { flex: 1 }]}
-              onPress={() => navigation.navigate('AddItem')}
-              activeOpacity={0.85}
-            >
-              <Text style={styles.acceptBtnText}>🎁 I Have This — List Item</Text>
-            </TouchableOpacity>
-          </View>
+          {isOwner ? (
+            <View style={[styles.actionsRow, { marginTop: 10 }]}>
+              <TouchableOpacity
+                style={[styles.cancelBtn, { flex: 1, alignItems: 'center', paddingVertical: 9 }]}
+                onPress={() => handleDeleteWishlist(item._id)}
+                disabled={actionLoadingId === item._id}
+                activeOpacity={0.85}
+              >
+                <Text style={styles.cancelBtnText}>
+                  {actionLoadingId === item._id ? 'Deleting...' : '🗑️ Delete Request'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <View style={[styles.actionsRow, { marginTop: 10, gap: 8 }]}>
+              <TouchableOpacity
+                style={[styles.acceptBtn, { flex: 1, alignItems: 'center', paddingVertical: 9 }]}
+                onPress={handleYesHaveIt}
+                activeOpacity={0.85}
+              >
+                <Text style={styles.acceptBtnText}>✅ Yes</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.rejectBtn, { flex: 1, alignItems: 'center', paddingVertical: 9 }]}
+                onPress={() => setDismissedWishlistIds((prev) => [...prev, item._id])}
+                activeOpacity={0.85}
+              >
+                <Text style={styles.rejectBtnText}>❌ No</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.chatQuickBtn, { flex: 1.2, alignItems: 'center', paddingVertical: 9 }]}
+                onPress={openRequesterChat}
+                activeOpacity={0.85}
+              >
+                <Text style={styles.chatQuickBtnText}>💬 Message</Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
       );
     }

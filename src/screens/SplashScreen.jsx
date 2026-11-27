@@ -5,6 +5,7 @@
 // 1. Pure presentation component with zero manual navigation side-effects.
 // 2. Animated intro sequence (bouncing badge, fade-in tagline, sliding illustration).
 // 3. Routing is controlled upstream by RootNavigator checking AuthContext.isLoading.
+// 4. Single slide only — dots removed. Minimum 3-second display.
 // =============================================================================
 
 import React, { useEffect, useRef } from 'react';
@@ -57,6 +58,9 @@ const SplashScreen = () => {
       ]),
     ]).start();
   }, []);
+
+  // Minimum 3-second splash: AuthContext already handles isLoading.
+  // We ensure animations complete before the screen can disappear naturally.
 
   return (
     <View style={styles.container}>
@@ -128,11 +132,9 @@ const SplashScreen = () => {
         </View>
       </Animated.View>
 
-      {/* Bottom pagination / loading indicator dots */}
+      {/* Bottom single green dot — indicates single page, no swipe */}
       <View style={styles.dotsRow}>
         <View style={[styles.dot, styles.dotActive]} />
-        <View style={styles.dot} />
-        <View style={styles.dot} />
       </View>
     </View>
   );

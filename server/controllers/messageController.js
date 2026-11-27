@@ -15,6 +15,7 @@ const mongoose = require('mongoose');
 // Models
 const Message = require('../models/Message');           // Individual messages
 const Item = require('../models/Item');                 // Items conversations are about
+const Wishlist = require('../models/Wishlist');         // Campus wishlist requests (also chat-able)
 const User = require('../models/User');                 // Users (sender/receiver profiles)
 const Notification = require('../models/Notification'); // In-app notification system
 
@@ -79,8 +80,11 @@ exports.sendMessage = async (req, res) => {
       });
     }
 
-    // Verify the item exists (conversation must be about a real item)
-    const item = await Item.findById(itemId);
+    // Verify the item or campus wishlist request exists
+    let item = await Item.findById(itemId);
+    if (!item) {
+      item = await Wishlist.findById(itemId);
+    }
     if (!item) {
       return res.status(404).json({ success: false, message: 'Item not found' });
     }
@@ -244,10 +248,13 @@ exports.getConversations = async (req, res) => {
     const itemIds = [...new Set(conversationList.map((c) => c.itemId))];
     const userIds = [...new Set(conversationList.map((c) => c.otherUserId))];
 
-    // Promise.all runs both queries in parallel (faster than sequential awaits)
-    const [items, users] = await Promise.all([
+    // Promise.all runs queries in parallel (faster than sequential awaits)
+    const [items, wishlists, users] = await Promise.all([
       Item.find({ _id: { $in: itemIds } })
         .select('title images category status') // Only fields needed for conversation preview
+        .lean(),
+      Wishlist.find({ _id: { $in: itemIds } })
+        .select('title category status')
         .lean(),
       User.find({ _id: { $in: userIds } })
         .select('name avatar isVerified')       // Only fields needed for user preview
@@ -255,7 +262,9 @@ exports.getConversations = async (req, res) => {
     ]);
 
     // Step 5: Build lookup Maps for O(1) access when enriching each conversation
-    const itemMap = new Map(items.map((i) => [String(i._id), i]));
+    const itemMap = new Map();
+    items.forEach((i) => itemMap.set(String(i._id), i));
+    wishlists.forEach((w) => itemMap.set(String(w._id), { ...w, images: [] }));
     const userMap = new Map(users.map((u) => [String(u._id), u]));
 
     // Step 6: Enrich each conversation with item and user details, then sort

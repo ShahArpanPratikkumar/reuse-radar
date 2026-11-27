@@ -82,8 +82,10 @@ export const AuthProvider = ({ children }) => {
 
   // Mechanism E: App Launch Session Restore (Persistent Login)
   // On app cold start, checks AsyncStorage for existing JWT and auto-authenticates user
+  // Minimum 3-second splash display so the branded screen is fully visible.
   useEffect(() => {
     const loadSession = async () => {
+      const startTime = Date.now();
       try {
         const storedToken = await storage.getToken();
         const storedUser = await storage.getUser();
@@ -110,7 +112,12 @@ export const AuthProvider = ({ children }) => {
       } catch (e) {
         console.error('[AuthContext] Session restore error:', e);
       } finally {
-        setIsLoading(false); // Dismisses Splash screen and renders App
+        // Ensure minimum 3000ms splash display for brand visibility
+        const elapsed = Date.now() - startTime;
+        const remaining = Math.max(0, 3000 - elapsed);
+        setTimeout(() => {
+          setIsLoading(false); // Dismisses Splash screen and renders App
+        }, remaining);
       }
     };
 

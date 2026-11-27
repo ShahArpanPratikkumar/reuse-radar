@@ -11,7 +11,7 @@
 //   7. Category & condition filter modal with real-time reactive refetching
 // =============================================================================
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useContext } from 'react';
 import {
   View,
   Text,
@@ -24,7 +24,9 @@ import {
   StatusBar,
   Dimensions,
   Modal,
+  Alert,
 } from 'react-native';
+import { AuthContext } from '../context/AuthContext';
 // Expo Location module for device GPS coordinates and reverse geocoding
 import * as Location from 'expo-location';
 // Item service for fetching nearby items and paginated item listings
@@ -127,6 +129,7 @@ const getItemDistanceKm = (item, userLocation) => {
 // MAIN COMPONENT: ExploreScreen
 // =============================================================================
 const ExploreScreen = ({ route, navigation }) => {
+  const { user } = useContext(AuthContext);
   // Read initial search query if navigated from another screen (e.g. HomeScreen search)
   const initialSearch = route.params?.initialSearch || '';
 
@@ -147,6 +150,8 @@ const ExploreScreen = ({ route, navigation }) => {
   // Campus requests wishlist state
   const [requests, setRequests] = useState([]);
   const [requestsLoading, setRequestsLoading] = useState(false);
+  const [dismissedRequestIds, setDismissedRequestIds] = useState([]);
+  const [deletingRequestId, setDeletingRequestId] = useState(null);
 
   // Radar search radius in kilometers (1, 5, 10, or 25 km)
   const [selectedRadius, setSelectedRadius] = useState(5);
@@ -518,64 +523,156 @@ const ExploreScreen = ({ route, navigation }) => {
               onAction={() => navigation.navigate('RequestItem')}
             />
           ) : (
-            requests.map((request) => {
-              const urgencyHigh = request.urgency === 'High';
-              const timeAgo = request.createdAt
-                ? new Date(request.createdAt).toLocaleDateString()
-                : 'Recently';
-              return (
-                <View key={request._id} style={styles.requestCard}>
-                  <View style={styles.requestCardTopRow}>
-                    <View
-                      style={[
-                        styles.urgencyBadge,
-                        urgencyHigh ? styles.urgencyBadgeHigh : styles.urgencyBadgeMedium,
-                      ]}
-                    >
-                      <Text
+            requests
+              .filter((r) => !dismissedRequestIds.includes(r._id))
+              .map((request) => {
+                const urgencyHigh = request.urgency === 'High';
+                const timeAgo = request.createdAt
+                  ? new Date(request.createdAt).toLocaleDateString()
+                  : 'Recently';
+                const isOwner = Boolean(
+                  user?._id &&
+                    request.requester?._id &&
+                    String(request.requester._id) === String(user._id)
+                );
+
+                const openRequesterChat = () => {
+                  if (!request.requester?._id) {
+                    Alert.alert('Chat Unavailable', 'Requester details are unavailable.');
+                    return;
+                  }
+                  navigation.navigate('Chat', {
+                    itemId: request._id,
+                    recipientId: request.requester._id,
+                    recipientName: request.requester.name || 'Campus Student',
+                    recipientVerified: Boolean(request.requester.isVerified),
+                    itemTitle: request.title || 'Campus Request',
+                  });
+                };
+
+                const handleYes = () => {
+                  Alert.alert(
+                    '✅ Yes, I Have This!',
+                    `Let ${request.requester?.name || 'your campus mate'} know you have "${request.title}".`,
+                    [
+                      { text: 'Cancel', style: 'cancel' },
+                      { text: '📦 List Item', onPress: () => navigation.navigate('AddItem') },
+                      { text: '💬 Message Now', onPress: openRequesterChat },
+                    ]
+                  );
+                };
+
+                const handleDelete = () => {
+                  Alert.alert(
+                    'Delete Request?',
+                    'Got this item or no longer need it? Remove your campus request.',
+                    [
+                      { text: 'Cancel', style: 'cancel' },
+                      {
+                        text: 'Yes, Delete',
+                        style: 'destructive',
+                        onPress: async () => {
+                          setDeletingRequestId(request._id);
+                          try {
+                            const res = await wishlistService.deleteWishlist(request._id);
+                            if (res && res.success) {
+                              setRequests((prev) => prev.filter((r) => r._id !== request._id));
+                            }
+                          } catch (err) {
+                            Alert.alert('Error', err.message || 'Could not delete request.');
+                          } finally {
+                            setDeletingRequestId(null);
+                          }
+                        },
+                      },
+                    ]
+                  );
+                };
+
+                return (
+                  <View key={request._id} style={styles.requestCard}>
+                    <View style={styles.requestCardTopRow}>
+                      <View
                         style={[
-                          styles.urgencyBadgeText,
-                          urgencyHigh ? styles.urgencyTextHigh : styles.urgencyTextMedium,
+                          styles.urgencyBadge,
+                          urgencyHigh ? styles.urgencyBadgeHigh : styles.urgencyBadgeMedium,
                         ]}
                       >
-                        {urgencyHigh ? '🔥 HIGH URGENCY' : '🕒 MEDIUM'}
-                      </Text>
-                    </View>
-                    <Text style={styles.requestCardCategory}>{request.category}</Text>
-                  </View>
-
-                  <Text style={styles.requestCardTitle} numberOfLines={2}>
-                    {request.title}
-                  </Text>
-                  <Text style={styles.requestCardDesc} numberOfLines={3}>
-                    {request.description}
-                  </Text>
-
-                  <View style={styles.requestCardFooter}>
-                    <View style={styles.requestRequesterRow}>
-                      <View style={styles.requestRequesterAvatar}>
-                        <Text style={styles.requestRequesterInitial}>
-                          {(request.requester?.name || 'S').charAt(0).toUpperCase()}
+                        <Text
+                          style={[
+                            styles.urgencyBadgeText,
+                            urgencyHigh ? styles.urgencyTextHigh : styles.urgencyTextMedium,
+                          ]}
+                        >
+                          {urgencyHigh ? '🔥 HIGH URGENCY' : '🕒 MEDIUM'}
                         </Text>
                       </View>
-                      <Text style={styles.requestRequesterName} numberOfLines={1}>
-                        {request.requester?.name || 'Campus Student'}
-                      </Text>
-                      <VerifiedBadge verified={Boolean(request.requester?.isVerified)} size={12} />
-                      <Text style={styles.requestTime}>• {timeAgo}</Text>
+                      <Text style={styles.requestCardCategory}>{request.category}</Text>
                     </View>
 
-                    <TouchableOpacity
-                      style={styles.helpOutBtn}
-                      onPress={() => navigation.navigate('AddItem')}
-                      activeOpacity={0.85}
-                    >
-                      <Text style={styles.helpOutBtnText}>Help out 🎁</Text>
-                    </TouchableOpacity>
+                    <Text style={styles.requestCardTitle} numberOfLines={2}>
+                      {request.title}
+                    </Text>
+                    <Text style={styles.requestCardDesc} numberOfLines={3}>
+                      {request.description}
+                    </Text>
+
+                    <View style={styles.requestCardFooter}>
+                      <View style={styles.requestRequesterRow}>
+                        <View style={styles.requestRequesterAvatar}>
+                          <Text style={styles.requestRequesterInitial}>
+                            {(request.requester?.name || 'S').charAt(0).toUpperCase()}
+                          </Text>
+                        </View>
+                        <Text style={styles.requestRequesterName} numberOfLines={1}>
+                          {isOwner ? 'You' : request.requester?.name || 'Campus Student'}
+                        </Text>
+                        <VerifiedBadge verified={Boolean(request.requester?.isVerified)} size={12} />
+                        <Text style={styles.requestTime}>• {timeAgo}</Text>
+                      </View>
+                    </View>
+
+                    {isOwner ? (
+                      <View style={styles.requestActionsRow}>
+                        <TouchableOpacity
+                          style={styles.deleteReqBtn}
+                          onPress={handleDelete}
+                          disabled={deletingRequestId === request._id}
+                          activeOpacity={0.85}
+                        >
+                          <Text style={styles.deleteReqBtnText}>
+                            {deletingRequestId === request._id ? 'Deleting...' : '🗑️ Delete My Request'}
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+                    ) : (
+                      <View style={styles.requestActionsRow}>
+                        <TouchableOpacity
+                          style={styles.yesBtn}
+                          onPress={handleYes}
+                          activeOpacity={0.85}
+                        >
+                          <Text style={styles.yesBtnText}>✅ Yes</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={styles.noBtn}
+                          onPress={() => setDismissedRequestIds((prev) => [...prev, request._id])}
+                          activeOpacity={0.85}
+                        >
+                          <Text style={styles.noBtnText}>❌ No</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                          style={styles.msgBtn}
+                          onPress={openRequesterChat}
+                          activeOpacity={0.85}
+                        >
+                          <Text style={styles.msgBtnText}>💬 Message</Text>
+                        </TouchableOpacity>
+                      </View>
+                    )}
                   </View>
-                </View>
-              );
-            })
+                );
+              })
           )}
 
           <View style={{ height: 90 }} />
@@ -1351,6 +1448,61 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '900',
     color: '#BEF264',
+  },
+  requestActionsRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 10,
+  },
+  yesBtn: {
+    flex: 1,
+    backgroundColor: '#064E3B',
+    paddingVertical: 9,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  yesBtnText: {
+    fontSize: 11.5,
+    fontWeight: '900',
+    color: '#BEF264',
+  },
+  noBtn: {
+    flex: 1,
+    backgroundColor: '#FEE2E2',
+    paddingVertical: 9,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  noBtnText: {
+    fontSize: 11.5,
+    fontWeight: '800',
+    color: '#991B1B',
+  },
+  msgBtn: {
+    flex: 1.2,
+    backgroundColor: '#ECFDF5',
+    borderWidth: 1,
+    borderColor: '#86EFAC',
+    paddingVertical: 9,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  msgBtnText: {
+    fontSize: 11.5,
+    fontWeight: '800',
+    color: '#064E3B',
+  },
+  deleteReqBtn: {
+    flex: 1,
+    backgroundColor: '#FEE2E2',
+    paddingVertical: 9,
+    borderRadius: 10,
+    alignItems: 'center',
+  },
+  deleteReqBtnText: {
+    fontSize: 11.5,
+    fontWeight: '800',
+    color: '#991B1B',
   },
 
   // ── RADAR MAP VIEW (Screenshot 1) ──────────────────────────────────────────
