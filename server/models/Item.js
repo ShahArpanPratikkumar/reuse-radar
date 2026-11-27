@@ -47,7 +47,7 @@ const itemSchema = new mongoose.Schema(
     condition: {
       type: String,
       required: [true, 'Please select item condition'],
-      enum: ['New', 'Like New', 'Good', 'Used'],
+      enum: ['New', 'Like New', 'Good', 'Excellent', 'Fair', 'Used'],
       index: true,
     },
 

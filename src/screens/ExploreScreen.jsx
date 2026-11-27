@@ -992,13 +992,14 @@ const ExploreScreen = ({ route, navigation }) => {
           ) : (
             <View style={styles.gridContainer}>
               {displayedItems.map((item) => (
-                <ItemCard
-                  key={item._id}
-                  item={item}
-                  userLocation={userLocation}
-                  isGrid={true}
-                  onPress={() => navigation.navigate('ItemDetails', { item })}
-                />
+                <View key={item._id} style={styles.gridItemWrap}>
+                  <ItemCard
+                    item={item}
+                    userLocation={userLocation}
+                    isGrid={true}
+                    onPress={() => navigation.navigate('ItemDetails', { item })}
+                  />
+                </View>
               ))}
             </View>
           )}
@@ -1267,16 +1268,18 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   priceFilterRow: {
-    maxHeight: 36,
+    flexGrow: 0,
     marginBottom: 8,
+    paddingVertical: 2,
   },
   priceFilterContent: {
     paddingHorizontal: 16,
     gap: 8,
+    alignItems: 'center',
   },
   priceChip: {
     paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingVertical: 7,
     borderRadius: 14,
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
@@ -1820,6 +1823,7 @@ const styles = StyleSheet.create({
   listScroll: {
     paddingHorizontal: 16,
     paddingTop: 4,
+    paddingBottom: 110,
   },
   filterPillsRow: {
     marginBottom: 12,
@@ -1938,6 +1942,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     marginHorizontal: -5,
+  },
+  gridItemWrap: {
+    width: '50%',
   },
 
   // Floating Toggle Pill (Screenshot 3)

@@ -85,6 +85,7 @@ const avatarUpload = multer({
   fileFilter,  // Only allow image file types
   limits: {
     fileSize: 5 * 1024 * 1024, // Max 5MB per avatar image
+    fieldSize: 25 * 1024 * 1024,
   },
 }).single('avatar'); // 'avatar' is the form field name the mobile app uses
 

@@ -186,7 +186,8 @@ const upload = multer({
   storage: storage,       // Where and how to save files
   fileFilter: fileFilter, // Which file types to allow
   limits: {
-    fileSize: 5 * 1024 * 1024, // Maximum file size: 5MB (5 * 1024 bytes * 1024 = 5,242,880 bytes)
+    fileSize: 5 * 1024 * 1024,    // Maximum file size: 5MB
+    fieldSize: 25 * 1024 * 1024,  // Allow large Base64 Data URIs in existingImages field
   },
 });
 

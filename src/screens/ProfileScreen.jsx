@@ -32,7 +32,8 @@ import { useFocusEffect } from '@react-navigation/native';
 
 // AuthContext provides session data, user state, and logout actions
 import { AuthContext } from '../context/AuthContext';
-import { getImageBaseUrl } from '../services/apiConfig';
+import { getImageBaseUrl, resolveImageUri } from '../services/apiConfig';
+import { itemService } from '../services/itemService';
 import CircularProgress from '../components/CircularProgress';
 
 const IMAGE_BASE_URL = getImageBaseUrl();
@@ -87,12 +88,26 @@ const ProfileScreen = ({ navigation }) => {
   const [contactsLoading, setContactsLoading] = useState(false);
   const [contactSearch, setContactSearch] = useState('');
   const [contactsError, setContactsError] = useState('');
+  const [myItems, setMyItems] = useState([]);
+  const [myItemsTab, setMyItemsTab] = useState('all'); // 'all' | 'donation' | 'sell' | 'borrow'
+
+  const loadMyItems = useCallback(async () => {
+    try {
+      const res = await itemService.getMyItems();
+      if (res && res.success) {
+        setMyItems(res.items || []);
+      }
+    } catch (e) {
+      // ignore silently
+    }
+  }, []);
 
   // Refresh user data whenever user switches to this tab
   useFocusEffect(
     useCallback(() => {
       refreshUser();
-    }, [refreshUser])
+      loadMyItems();
+    }, [refreshUser, loadMyItems])
   );
 
   // Derived metrics from user document
@@ -526,6 +541,125 @@ const ProfileScreen = ({ navigation }) => {
             </TouchableOpacity>
           </View>
         </View>
+
+        {/* My Listed Items by Type: Free Giveaway, Sell, Exchange/Borrow */}
+        <View style={styles.sectionHeaderRow}>
+          <Text style={styles.sectionTitle}>My Listings</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('MyItems', { initialTab: 'listings' })}>
+            <Text style={styles.sectionActionLink}>Manage All →</Text>
+          </TouchableOpacity>
+        </View>
+
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.myTabsRow}
+        >
+          {[
+            { key: 'all', label: `All (${myItems.length})` },
+            {
+              key: 'donation',
+              label: `🎁 Free Giveaway (${myItems.filter((i) => (i.listingType || 'donation') === 'donation').length})`,
+            },
+            {
+              key: 'sell',
+              label: `💰 Sell (${myItems.filter((i) => i.listingType === 'sell').length})`,
+            },
+            {
+              key: 'borrow',
+              label: `🔄 Exchange / Borrow (${myItems.filter((i) => i.listingType === 'borrow').length})`,
+            },
+          ].map((tab) => {
+            const active = myItemsTab === tab.key;
+            return (
+              <TouchableOpacity
+                key={tab.key}
+                style={[styles.myTabChip, active && styles.myTabChipActive]}
+                onPress={() => setMyItemsTab(tab.key)}
+                activeOpacity={0.85}
+              >
+                <Text style={[styles.myTabChipText, active && styles.myTabChipTextActive]}>
+                  {tab.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+
+        {(() => {
+          const filtered =
+            myItemsTab === 'all'
+              ? myItems
+              : myItems.filter((i) => (i.listingType || 'donation') === myItemsTab);
+          if (filtered.length === 0) {
+            return (
+              <View style={styles.myItemsEmptyCard}>
+                <Text style={styles.myItemsEmptyText}>
+                  No items in this section yet.
+                </Text>
+                <TouchableOpacity
+                  style={styles.myItemsAddBtn}
+                  onPress={() => navigation.navigate('AddItem')}
+                  activeOpacity={0.85}
+                >
+                  <Text style={styles.myItemsAddBtnText}>+ Add Listing</Text>
+                </TouchableOpacity>
+              </View>
+            );
+          }
+          return (
+            <View style={styles.myItemsList}>
+              {filtered.slice(0, 6).map((item) => {
+                const imgUri =
+                  item.images && item.images.length > 0
+                    ? resolveImageUri(item.images[0])
+                    : null;
+                const typeLabel =
+                  item.listingType === 'sell'
+                    ? `₹${item.price || 0}`
+                    : item.listingType === 'borrow'
+                    ? '🔄 Borrow'
+                    : '🎁 Free';
+                return (
+                  <TouchableOpacity
+                    key={item._id}
+                    style={styles.myItemRowCard}
+                    onPress={() => navigation.navigate('ItemDetails', { item })}
+                    activeOpacity={0.85}
+                  >
+                    {imgUri ? (
+                      <Image source={{ uri: imgUri }} style={styles.myItemThumb} />
+                    ) : (
+                      <View style={[styles.myItemThumb, styles.myItemThumbPlaceholder]}>
+                        <Text style={{ fontSize: 18 }}>📦</Text>
+                      </View>
+                    )}
+                    <View style={styles.myItemInfo}>
+                      <Text style={styles.myItemTitle} numberOfLines={1}>
+                        {item.title}
+                      </Text>
+                      <View style={styles.myItemMetaRow}>
+                        <View style={styles.myItemTypePill}>
+                          <Text style={styles.myItemTypeText}>{typeLabel}</Text>
+                        </View>
+                        <Text style={styles.myItemStatus}>
+                          • {item.status === 'completed' ? 'Completed' : 'Active'}
+                        </Text>
+                      </View>
+                    </View>
+                    <TouchableOpacity
+                      style={styles.myItemEditBtn}
+                      onPress={() => navigation.navigate('AddItem', { itemToEdit: item })}
+                      activeOpacity={0.8}
+                    >
+                      <Text style={styles.myItemEditText}>Edit</Text>
+                    </TouchableOpacity>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          );
+        })()}
 
         {/* Account Activity Menu List */}
         <View style={styles.sectionHeaderRow}>
@@ -1405,6 +1539,126 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: '#94A3B8',
     fontWeight: '500',
+  },
+  sectionActionLink: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#059669',
+  },
+  myTabsRow: {
+    gap: 8,
+    paddingBottom: 10,
+  },
+  myTabChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 14,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  myTabChipActive: {
+    backgroundColor: '#064E3B',
+    borderColor: '#064E3B',
+  },
+  myTabChipText: {
+    fontSize: 11.5,
+    fontWeight: '800',
+    color: '#475569',
+  },
+  myTabChipTextActive: {
+    color: '#BEF264',
+  },
+  myItemsEmptyCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    padding: 16,
+    alignItems: 'center',
+    marginBottom: 18,
+    gap: 10,
+  },
+  myItemsEmptyText: {
+    fontSize: 12.5,
+    color: '#64748B',
+    fontWeight: '600',
+  },
+  myItemsAddBtn: {
+    backgroundColor: '#064E3B',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 10,
+  },
+  myItemsAddBtnText: {
+    color: '#BEF264',
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  myItemsList: {
+    gap: 8,
+    marginBottom: 18,
+  },
+  myItemRowCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    padding: 10,
+    gap: 10,
+  },
+  myItemThumb: {
+    width: 48,
+    height: 48,
+    borderRadius: 10,
+    backgroundColor: '#F1F5F9',
+  },
+  myItemThumbPlaceholder: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  myItemInfo: {
+    flex: 1,
+  },
+  myItemTitle: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#0F172A',
+    marginBottom: 4,
+  },
+  myItemMetaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  myItemTypePill: {
+    backgroundColor: '#ECFDF5',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 8,
+  },
+  myItemTypeText: {
+    fontSize: 10.5,
+    fontWeight: '800',
+    color: '#065F46',
+  },
+  myItemStatus: {
+    fontSize: 11,
+    color: '#64748B',
+    fontWeight: '600',
+  },
+  myItemEditBtn: {
+    backgroundColor: '#F1F5F9',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+  },
+  myItemEditText: {
+    fontSize: 11.5,
+    fontWeight: '800',
+    color: '#064E3B',
   },
 });
 
