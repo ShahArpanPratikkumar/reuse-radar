@@ -29,6 +29,7 @@ import {
 import { AuthContext } from '../context/AuthContext';
 // Expo Location module for device GPS coordinates and reverse geocoding
 import * as Location from 'expo-location';
+import { Ionicons } from '@expo/vector-icons';
 // Item service for fetching nearby items and paginated item listings
 import { itemService } from '../services/itemService';
 // Wishlist service for campus request feed
@@ -422,7 +423,7 @@ const ExploreScreen = ({ route, navigation }) => {
           onPress={() => setFilterModalVisible(true)}
           activeOpacity={0.8}
         >
-          <Text style={styles.filterIcon}>🎛️</Text>
+          <Ionicons name="options-outline" size={20} color="#BEF264" />
         </TouchableOpacity>
       </View>
 
@@ -433,9 +434,16 @@ const ExploreScreen = ({ route, navigation }) => {
           onPress={() => setFeedTab('nearby')}
           activeOpacity={0.85}
         >
-          <Text style={[styles.feedTabText, feedTab === 'nearby' && styles.feedTabTextActive]}>
-            🧭 Nearby
-          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+            <Ionicons
+              name="compass-outline"
+              size={15}
+              color={feedTab === 'nearby' ? '#BEF264' : '#475569'}
+            />
+            <Text style={[styles.feedTabText, feedTab === 'nearby' && styles.feedTabTextActive]}>
+              Nearby
+            </Text>
+          </View>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -443,9 +451,16 @@ const ExploreScreen = ({ route, navigation }) => {
           onPress={() => setFeedTab('requests')}
           activeOpacity={0.85}
         >
-          <Text style={[styles.feedTabText, feedTab === 'requests' && styles.feedTabTextActive]}>
-            📣 Campus Requests
-          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+            <Ionicons
+              name="megaphone-outline"
+              size={15}
+              color={feedTab === 'requests' ? '#BEF264' : '#475569'}
+            />
+            <Text style={[styles.feedTabText, feedTab === 'requests' && styles.feedTabTextActive]}>
+              Campus Requests
+            </Text>
+          </View>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -472,28 +487,30 @@ const ExploreScreen = ({ route, navigation }) => {
       </View>
 
       {feedTab === 'nearby' ? (
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.priceFilterRow}
-          contentContainerStyle={styles.priceFilterContent}
-        >
-          {PRICE_FILTERS.map((filter) => {
-            const active = priceFilter === filter.key;
-            return (
-              <TouchableOpacity
-                key={filter.key}
-                style={[styles.priceChip, active && styles.priceChipActive]}
-                onPress={() => setPriceFilter(filter.key)}
-                activeOpacity={0.85}
-              >
-                <Text style={[styles.priceChipText, active && styles.priceChipTextActive]}>
-                  {filter.label}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
+        <View style={styles.priceFilterWrap}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.priceFilterRow}
+            contentContainerStyle={styles.priceFilterContent}
+          >
+            {PRICE_FILTERS.map((filter) => {
+              const active = priceFilter === filter.key;
+              return (
+                <TouchableOpacity
+                  key={filter.key}
+                  style={[styles.priceChip, active && styles.priceChipActive]}
+                  onPress={() => setPriceFilter(filter.key)}
+                  activeOpacity={0.85}
+                >
+                  <Text style={[styles.priceChipText, active && styles.priceChipTextActive]}>
+                    {filter.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        </View>
       ) : null}
 
       {/* ────────────────────────────────────────────────────────────────────── */}
@@ -924,7 +941,10 @@ const ExploreScreen = ({ route, navigation }) => {
               onPress={() => setFilterModalVisible(true)}
               activeOpacity={0.8}
             >
-              <Text style={styles.inactiveFilterPillText}>Condition: {selectedCondition} 🎛️</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+                <Text style={styles.inactiveFilterPillText}>Condition: {selectedCondition}</Text>
+                <Ionicons name="options-outline" size={13} color="#475569" />
+              </View>
             </TouchableOpacity>
           </ScrollView>
 
@@ -1016,23 +1036,33 @@ const ExploreScreen = ({ route, navigation }) => {
             style={styles.toggleSegment}
             onPress={() => setFilterModalVisible(true)}
           >
-            <Text style={styles.toggleSegmentText}>🎛️ Filters (3)</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+              <Ionicons name="options-outline" size={14} color="#FFFFFF" />
+              <Text style={styles.toggleSegmentText}>Filters</Text>
+            </View>
           </TouchableOpacity>
           <View style={styles.toggleDivider} />
           <TouchableOpacity
             style={styles.toggleSegment}
             onPress={() => setViewMode(viewMode === 'radar' ? 'list' : 'radar')}
           >
-            <Text style={styles.toggleSegmentText}>
-              {viewMode === 'radar' ? '📋 List View' : '🗺️ Map View'}
-            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+              <Ionicons
+                name={viewMode === 'radar' ? 'list-outline' : 'map-outline'}
+                size={14}
+                color="#FFFFFF"
+              />
+              <Text style={styles.toggleSegmentText}>
+                {viewMode === 'radar' ? 'List View' : 'Map View'}
+              </Text>
+            </View>
           </TouchableOpacity>
           <View style={styles.toggleDivider} />
           <TouchableOpacity
             style={styles.toggleSegment}
             onPress={() => {}}
           >
-            <Text style={styles.toggleSegmentText}>⬆️</Text>
+            <Ionicons name="arrow-up" size={15} color="#FFFFFF" />
           </TouchableOpacity>
         </View>
       </View>
@@ -1266,11 +1296,17 @@ const styles = StyleSheet.create({
   verifiedFilterRow: {
     paddingHorizontal: 16,
     marginBottom: 8,
+    flexShrink: 0,
+  },
+  priceFilterWrap: {
+    height: 40,
+    flexShrink: 0,
+    marginBottom: 8,
+    justifyContent: 'center',
   },
   priceFilterRow: {
     flexGrow: 0,
-    marginBottom: 8,
-    paddingVertical: 2,
+    flexShrink: 0,
   },
   priceFilterContent: {
     paddingHorizontal: 16,
@@ -1278,12 +1314,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   priceChip: {
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderRadius: 14,
+    height: 34,
+    paddingHorizontal: 14,
+    borderRadius: 17,
     backgroundColor: '#FFFFFF',
     borderWidth: 1,
     borderColor: '#E2E8F0',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   priceChipActive: {
     backgroundColor: '#047857',

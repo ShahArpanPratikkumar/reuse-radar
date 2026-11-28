@@ -24,6 +24,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
 
 // AuthContext provides user identity to distinguish sent vs received messages
 import { AuthContext } from '../context/AuthContext';
@@ -228,7 +229,7 @@ const MessagesListScreen = ({ navigation }) => {
       {/* Search Input Box */}
       <View style={styles.searchWrapper}>
         <View style={styles.searchContainer}>
-          <Text style={styles.searchIcon}>🔍</Text>
+          <Ionicons name="search-outline" size={18} color="#64748B" style={{ marginRight: 8 }} />
           <TextInput
             style={styles.searchInput}
             placeholder="Search by name or item..."

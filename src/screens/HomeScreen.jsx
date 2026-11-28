@@ -531,7 +531,7 @@ const HomeScreen = ({ navigation }) => {
               activeOpacity={0.8}
             >
               <View style={[styles.categoryCircle, active && styles.categoryCircleActive]}>
-                <Ionicons name={cat.icon} size={26} color={active ? '#064E3B' : '#059669'} />
+                <Ionicons name={cat.icon} size={26} color={active ? '#FFFFFF' : '#059669'} />
               </View>
               <Text
                 style={[styles.categoryLabel, active && styles.categoryLabelActive]}
@@ -586,7 +586,7 @@ const HomeScreen = ({ navigation }) => {
           </Text>
         </View>
         <View style={styles.requestCtaPlusBox}>
-          <Text style={styles.requestCtaPlus}>＋</Text>
+          <Ionicons name="add" size={20} color="#BEF264" />
         </View>
       </TouchableOpacity>
 
@@ -594,7 +594,10 @@ const HomeScreen = ({ navigation }) => {
       {urgentRequests.length > 0 ? (
         <View style={styles.sectionBlock}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>📣 Urgent Campus Requests</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <Ionicons name="megaphone-outline" size={18} color="#064E3B" />
+              <Text style={styles.sectionTitle}>Urgent Campus Requests</Text>
+            </View>
             <TouchableOpacity
               onPress={() => navigation.navigate('Explore', { openRequestsFeed: true, refreshAt: Date.now() })}
             >
@@ -650,7 +653,10 @@ const HomeScreen = ({ navigation }) => {
       {hotItems.length > 0 ? (
         <View style={styles.sectionBlock}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>🔥 Hot Discoveries Near You</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <Ionicons name="flame" size={18} color="#EA580C" />
+              <Text style={styles.sectionTitle}>Hot Discoveries Near You</Text>
+            </View>
             <TouchableOpacity onPress={() => navigation.navigate('Explore')}>
               <Text style={styles.sectionLink}>See all →</Text>
             </TouchableOpacity>
@@ -662,7 +668,10 @@ const HomeScreen = ({ navigation }) => {
 
       {/* Feed Header */}
       <View style={styles.sectionHeader}>
-        <Text style={styles.sectionTitle}>✨ Freshly Added Today</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+          <Ionicons name="sparkles" size={17} color="#059669" />
+          <Text style={styles.sectionTitle}>Freshly Added Today</Text>
+        </View>
         <Text style={styles.sectionCount}>{items.length}</Text>
       </View>
     </View>

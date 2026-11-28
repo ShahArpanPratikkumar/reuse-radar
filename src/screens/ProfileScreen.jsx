@@ -29,6 +29,7 @@ import * as Contacts from 'expo-contacts';
 import * as FileSystem from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
 import { useFocusEffect } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
 
 // AuthContext provides session data, user state, and logout actions
 import { AuthContext } from '../context/AuthContext';
@@ -425,7 +426,10 @@ const ProfileScreen = ({ navigation }) => {
             onPress={() => navigation.navigate('EditProfile')}
             activeOpacity={0.85}
           >
-            <Text style={styles.editProfileBtnText}>✏️ Edit Profile</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <Ionicons name="create-outline" size={16} color="#064E3B" />
+              <Text style={styles.editProfileBtnText}>Edit Profile</Text>
+            </View>
           </TouchableOpacity>
         </View>
 

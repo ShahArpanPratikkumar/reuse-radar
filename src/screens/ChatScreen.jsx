@@ -28,6 +28,7 @@ import {
   Keyboard,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 
 // AuthContext provides user session data to classify messages as outgoing or incoming
 import { AuthContext } from '../context/AuthContext';
@@ -267,7 +268,7 @@ const ChatScreen = ({ route, navigation }) => {
           onPress={() => navigation.goBack()}
           activeOpacity={0.7}
         >
-          <Text style={styles.headerIconText}>←</Text>
+          <Ionicons name="arrow-back" size={20} color="#064E3B" />
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -292,10 +293,10 @@ const ChatScreen = ({ route, navigation }) => {
 
         <View style={styles.headerActions}>
           <TouchableOpacity style={styles.headerIconBtn} onPress={handleCall} activeOpacity={0.7}>
-            <Text style={styles.headerIconText}>📞</Text>
+            <Ionicons name="call-outline" size={18} color="#064E3B" />
           </TouchableOpacity>
           <TouchableOpacity style={styles.headerIconBtn} onPress={handleShare} activeOpacity={0.7}>
-            <Text style={styles.headerIconText}>↗</Text>
+            <Ionicons name="share-outline" size={18} color="#064E3B" />
           </TouchableOpacity>
         </View>
       </View>
@@ -402,7 +403,7 @@ const ChatScreen = ({ route, navigation }) => {
             {sending ? (
               <ActivityIndicator color="#BEF264" size="small" />
             ) : (
-              <Text style={styles.sendBtnText}>➤</Text>
+              <Ionicons name="send" size={18} color="#BEF264" />
             )}
           </TouchableOpacity>
         </View>

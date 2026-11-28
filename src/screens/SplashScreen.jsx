@@ -64,7 +64,7 @@ const SplashScreen = () => {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#064E3B" />
+      <StatusBar barStyle="dark-content" backgroundColor="#B7EFCD" />
 
       {/* Decorative semi-transparent background ambient circles */}
       <View style={styles.circleTopRight} />
@@ -144,7 +144,7 @@ const SplashScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#064E3B', // Dark Forest Green — matches app brand color
+    backgroundColor: '#B7EFCD', // Soft pastel mint green
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingTop: 60,
@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
     width: 200,
     height: 200,
     borderRadius: 100,
-    backgroundColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: 'rgba(255,255,255,0.18)',
   },
   circleBottomLeft: {
     position: 'absolute',
@@ -167,7 +167,7 @@ const styles = StyleSheet.create({
     width: 240,
     height: 240,
     borderRadius: 120,
-    backgroundColor: 'rgba(255,255,255,0.06)',
+    backgroundColor: 'rgba(255,255,255,0.14)',
   },
   topSection: {
     alignItems: 'center',
@@ -213,7 +213,7 @@ const styles = StyleSheet.create({
   appName: {
     fontSize: 36,
     fontWeight: '300',
-    color: '#FFFFFF',
+    color: '#064E3B',
     textAlign: 'center',
     letterSpacing: 2,
     lineHeight: 40,
@@ -221,7 +221,7 @@ const styles = StyleSheet.create({
   appNameBold: {
     fontSize: 42,
     fontWeight: '900',
-    color: '#A3E635',
+    color: '#064E3B',
     textAlign: 'center',
     letterSpacing: 1,
     marginTop: -6,
@@ -229,7 +229,7 @@ const styles = StyleSheet.create({
   },
   tagline: {
     fontSize: 13,
-    color: 'rgba(255,255,255,0.75)',
+    color: '#065F46',
     textAlign: 'center',
     marginTop: 8,
     fontWeight: '500',
