@@ -18,6 +18,9 @@ import React, { useContext } from 'react';
 // React Native UI components
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 
+// Vector icons for professional tab bar
+import { Ionicons } from '@expo/vector-icons';
+
 // React Navigation — Stack navigator for sequential screens (push/pop)
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
@@ -113,9 +116,12 @@ const TabNavigator = () => {
         component={HomeScreen}
         options={{
           tabBarLabel: 'Home',
-          // 'focused' tells us if this tab is currently selected
           tabBarIcon: ({ color, focused }) => (
-            <Text style={{ fontSize: 20, opacity: focused ? 1 : 0.65 }}>🎯</Text>
+            <Ionicons
+              name={focused ? 'home' : 'home-outline'}
+              size={22}
+              color={color}
+            />
           ),
         }}
       />
@@ -127,7 +133,11 @@ const TabNavigator = () => {
         options={{
           tabBarLabel: 'Explore',
           tabBarIcon: ({ color, focused }) => (
-            <Text style={{ fontSize: 20, opacity: focused ? 1 : 0.65 }}>🧭</Text>
+            <Ionicons
+              name={focused ? 'search-circle' : 'search-circle-outline'}
+              size={24}
+              color={color}
+            />
           ),
         }}
       />
@@ -151,7 +161,11 @@ const TabNavigator = () => {
         options={{
           tabBarLabel: 'Requests',
           tabBarIcon: ({ color, focused }) => (
-            <Text style={{ fontSize: 20, opacity: focused ? 1 : 0.65 }}>⇄</Text>
+            <Ionicons
+              name={focused ? 'swap-horizontal' : 'swap-horizontal-outline'}
+              size={22}
+              color={color}
+            />
           ),
         }}
       />
@@ -163,7 +177,11 @@ const TabNavigator = () => {
         options={{
           tabBarLabel: 'Profile',
           tabBarIcon: ({ color, focused }) => (
-            <Text style={{ fontSize: 20, opacity: focused ? 1 : 0.65 }}>👤</Text>
+            <Ionicons
+              name={focused ? 'person-circle' : 'person-circle-outline'}
+              size={24}
+              color={color}
+            />
           ),
         }}
       />

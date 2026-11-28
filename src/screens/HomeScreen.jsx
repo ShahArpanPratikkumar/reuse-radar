@@ -22,6 +22,7 @@ import {
   StatusBar,
 } from 'react-native';
 import * as Location from 'expo-location';
+import { Ionicons } from '@expo/vector-icons';
 
 // Global context providing logged-in user profile and unread notification counts
 import { AuthContext } from '../context/AuthContext';
@@ -697,7 +698,7 @@ const HomeScreen = ({ navigation }) => {
           onPress={() => navigation.navigate('Messages')}
           activeOpacity={0.8}
         >
-          <Text style={styles.bellIcon}>💬</Text>
+          <Ionicons name="chatbubble-ellipses-outline" size={22} color="#064E3B" />
           {unreadMessages > 0 ? (
             <View style={[styles.bellBadge, styles.chatBadgeBg]}>
               <Text style={styles.bellBadgeText}>
@@ -713,7 +714,7 @@ const HomeScreen = ({ navigation }) => {
           onPress={() => navigation.navigate('Notifications')}
           activeOpacity={0.8}
         >
-          <Text style={styles.bellIcon}>🔔</Text>
+          <Ionicons name="notifications-outline" size={22} color="#064E3B" />
           {unreadNotifCount > 0 ? (
             <View style={styles.bellBadge}>
               <Text style={styles.bellBadgeText}>

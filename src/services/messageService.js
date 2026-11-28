@@ -37,4 +37,11 @@ export const messageService = {
   async getConversations() {
     return await api.get('/messages/conversations');
   },
+
+  // ── Delete a Message (ChatScreen — sender only) ───────────────────────────
+  // Permanently removes the message from MongoDB for both sides.
+  // Only the original sender can delete their message.
+  async deleteMessage(messageId) {
+    return await api.delete(`/messages/${messageId}`);
+  },
 };

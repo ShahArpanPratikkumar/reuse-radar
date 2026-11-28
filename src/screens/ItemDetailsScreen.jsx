@@ -650,7 +650,18 @@ const ItemDetailsScreen = ({ route, navigation }) => {
 
         <View style={styles.metaRow}>
           <Text style={styles.metaTimeId}>
-            🕒 Listed 42 minutes ago • ID #RAD-{item?._id?.slice(-4) || '8821'}
+            🕒 {item?.createdAt
+              ? (() => {
+                  const diff = Date.now() - new Date(item.createdAt).getTime();
+                  const mins = Math.floor(diff / 60000);
+                  const hrs = Math.floor(mins / 60);
+                  const days = Math.floor(hrs / 24);
+                  if (days > 0) return `${days}d ago`;
+                  if (hrs > 0) return `${hrs}h ago`;
+                  if (mins > 0) return `${mins}m ago`;
+                  return 'Just now';
+                })()
+              : 'Recently'}{' '}• ID #RAD-{item?._id?.slice(-4) || '—'}
           </Text>
           {item?._id ? (
             <TouchableOpacity
@@ -724,13 +735,19 @@ const ItemDetailsScreen = ({ route, navigation }) => {
                   showLabel
                 />
               </View>
-              <Text style={styles.giverRole}>Community Hero • Level 4 Giver</Text>
-              <Text style={styles.giverMemberSince}>Member since Mar 2023</Text>
+              <Text style={styles.giverRole}>Campus Member</Text>
+              <Text style={styles.giverMemberSince}>
+                {item?.donor?.createdAt
+                  ? `Member since ${new Date(item.donor.createdAt).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' })}`
+                  : 'ReUse Radar Member'}
+              </Text>
             </View>
 
             <View style={styles.giverRatingBox}>
-              <Text style={styles.giverRatingStar}>⭐ 4.9</Text>
-              <Text style={styles.giverReusesCount}>34 items gifted</Text>
+              <Text style={styles.giverRatingStar}>✓ Verified</Text>
+              <Text style={styles.giverReusesCount}>
+                {item?.donor?.isVerified ? 'ID Verified' : 'Campus Member'}
+              </Text>
             </View>
           </View>
 
@@ -839,32 +856,40 @@ const ItemDetailsScreen = ({ route, navigation }) => {
           </View>
         </View>
 
-        {/* ── 8. Details & Specs 2x2 Grid ── */}
+        {/* ── 8. Details & Specs — Real data from item ── */}
         <View style={styles.specsSection}>
           <Text style={styles.sectionHeaderTitle}>Details & Specs</Text>
           <View style={styles.specsGrid}>
             <View style={styles.specBox}>
-              <Text style={styles.specLabel}>Dimensions</Text>
+              <Text style={styles.specLabel}>Category</Text>
+              <Text style={styles.specValue}>{item?.category || '—'}</Text>
+            </View>
+            <View style={styles.specBox}>
+              <Text style={styles.specLabel}>Condition</Text>
+              <Text style={styles.specValue}>{item?.condition || '—'}</Text>
+            </View>
+            <View style={styles.specBox}>
+              <Text style={styles.specLabel}>Listing Type</Text>
               <Text style={styles.specValue}>
-                {item?.specs?.dimensions || '120 x 60 x 75 cm'}
+                {item?.listingType === 'donation'
+                  ? '🎁 Free Giveaway'
+                  : item?.listingType === 'sell'
+                  ? '💰 Sell for Cash'
+                  : item?.listingType === 'borrow'
+                  ? '🔄 To Borrow'
+                  : '—'}
               </Text>
             </View>
             <View style={styles.specBox}>
-              <Text style={styles.specLabel}>Material</Text>
-              <Text style={styles.specValue}>
-                {item?.specs?.material || 'Reclaimed Teak'}
+              <Text style={styles.specLabel}>
+                {item?.listingType === 'sell' ? 'Price' : item?.listingType === 'borrow' ? 'Borrow Days' : 'Cost'}
               </Text>
-            </View>
-            <View style={styles.specBox}>
-              <Text style={styles.specLabel}>Weight Approx</Text>
-              <Text style={styles.specValue}>
-                {item?.specs?.weight || '~18 kg (Sturdy)'}
-              </Text>
-            </View>
-            <View style={styles.specBox}>
-              <Text style={styles.specLabel}>Pickup Deadline</Text>
-              <Text style={[styles.specValue, { color: '#DC2626' }]}>
-                Before Sunday 8 PM
+              <Text style={[styles.specValue, { color: item?.listingType === 'sell' ? '#059669' : '#374151' }]}>
+                {item?.listingType === 'sell'
+                  ? `₹${Number(item?.price || 0).toLocaleString('en-IN')}`
+                  : item?.listingType === 'borrow'
+                  ? `${item?.borrowDays || 0} days`
+                  : 'Free'}
               </Text>
             </View>
           </View>
@@ -874,9 +899,9 @@ const ItemDetailsScreen = ({ route, navigation }) => {
         <View style={styles.preferenceCard}>
           <Text style={styles.preferenceIcon}>🚚</Text>
           <View style={styles.preferenceTextContainer}>
-            <Text style={styles.preferenceTitle}>Pickup Preference</Text>
+            <Text style={styles.preferenceTitle}>Pickup Location</Text>
             <Text style={styles.preferenceDesc}>
-              Self-pickup required. 2nd floor with wide service elevator available. Can easily fit in an auto-rickshaw or small hatchback with folded seats.
+              {item?.addressText || 'Contact the owner for exact pickup location on campus.'}
             </Text>
           </View>
         </View>

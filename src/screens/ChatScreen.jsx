@@ -165,6 +165,29 @@ const ChatScreen = ({ route, navigation }) => {
     }
   };
 
+  // Mechanism 5b: Delete Message Handler (long-press on own message)
+  const handleDeleteMessage = (messageId) => {
+    Alert.alert(
+      'Delete Message?',
+      'This message will be deleted for everyone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await messageService.deleteMessage(messageId);
+              setMessages((prev) => prev.filter((m) => m._id !== messageId));
+            } catch (err) {
+              Alert.alert('Error', err.message || 'Could not delete message.');
+            }
+          },
+        },
+      ]
+    );
+  };
+
   // Mechanism 6: Native Phone Dialer Integration
   const handleCall = () => {
     if (!recipientPhone) {
@@ -211,19 +234,25 @@ const ChatScreen = ({ route, navigation }) => {
     const isRead = !!item.isRead;
 
     return (
-      <View style={[styles.messageRow, isMe ? styles.messageRowMe : styles.messageRowOther]}>
-        <View style={[styles.bubble, isMe ? styles.bubbleMe : styles.bubbleOther]}>
-          <Text style={[styles.bubbleText, isMe && styles.bubbleTextMe]}>{item.text}</Text>
+      <TouchableOpacity
+        onLongPress={isMe ? () => handleDeleteMessage(item._id) : undefined}
+        delayLongPress={500}
+        activeOpacity={1}
+      >
+        <View style={[styles.messageRow, isMe ? styles.messageRowMe : styles.messageRowOther]}>
+          <View style={[styles.bubble, isMe ? styles.bubbleMe : styles.bubbleOther]}>
+            <Text style={[styles.bubbleText, isMe && styles.bubbleTextMe]}>{item.text}</Text>
+          </View>
+          <View style={[styles.metaRow, isMe ? styles.metaRowMe : styles.metaRowOther]}>
+            <Text style={styles.metaTime}>{formatTime(item.createdAt)}</Text>
+            {isMe ? (
+              <Text style={[styles.receipt, isRead && styles.receiptRead]}>
+                {isRead ? '✓✓' : '✓'}
+              </Text>
+            ) : null}
+          </View>
         </View>
-        <View style={[styles.metaRow, isMe ? styles.metaRowMe : styles.metaRowOther]}>
-          <Text style={styles.metaTime}>{formatTime(item.createdAt)}</Text>
-          {isMe ? (
-            <Text style={[styles.receipt, isRead && styles.receiptRead]}>
-              {isRead ? '✓✓' : '✓'}
-            </Text>
-          ) : null}
-        </View>
-      </View>
+      </TouchableOpacity>
     );
   };
 

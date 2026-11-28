@@ -165,4 +165,8 @@ itemSchema.index({ category: 1, status: 1, isHidden: 1 });
 itemSchema.index({ isHidden: 1, createdAt: -1 });
 itemSchema.index({ donor: 1, isHidden: 1 });
 
+// 4. TTL Index: Auto-delete items 7 days after creation to keep MongoDB clean
+// MongoDB background process checks every 60 seconds and removes expired documents
+itemSchema.index({ createdAt: 1 }, { expireAfterSeconds: 604800 }); // 7 days = 604800 seconds
+
 module.exports = mongoose.model('Item', itemSchema);

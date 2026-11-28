@@ -1,4 +1,25 @@
 // =============================================================================
+// @desc    Delete a message (sender only, removes for everyone)
+// @route   DELETE /api/messages/:messageId
+// @access  Protected
+// =============================================================================
+
+exports.deleteMessage = async (req, res) => {
+  try {
+    const message = await Message.findById(req.params.messageId);
+    if (!message) {
+      return res.status(404).json({ success: false, message: 'Message not found' });
+    }
+    if (String(message.sender) !== String(req.user._id)) {
+      return res.status(403).json({ success: false, message: 'You can only delete your own messages' });
+    }
+    await Message.findByIdAndDelete(req.params.messageId);
+    return res.status(200).json({ success: true, message: 'Message deleted successfully' });
+  } catch (error) {
+    console.error('[DeleteMessage Error]', error);
+    return res.status(500).json({ success: false, message: error.message || 'Server error' });
+  }
+};
 // REUSE RADAR - MESSAGE CONTROLLER (messageController.js)
 // Purpose: Handles real-time-like chat messaging between students about items.
 //          In ReUse Radar, conversations are always tied to a specific item.
@@ -8,6 +29,27 @@
 //   GET  /api/messages/conversations        — Get inbox (all conversation threads)
 //   GET  /api/messages/:itemId/:otherUserId — Get conversation history for one item
 // =============================================================================
+// @desc    Delete a message (sender only, removes for everyone)
+// @route   DELETE /api/messages/:messageId
+// @access  Protected
+// =============================================================================
+
+exports.deleteMessage = async (req, res) => {
+  try {
+    const message = await Message.findById(req.params.messageId);
+    if (!message) {
+      return res.status(404).json({ success: false, message: 'Message not found' });
+    }
+    if (String(message.sender) !== String(req.user._id)) {
+      return res.status(403).json({ success: false, message: 'You can only delete your own messages' });
+    }
+    await Message.findByIdAndDelete(req.params.messageId);
+    return res.status(200).json({ success: true, message: 'Message deleted successfully' });
+  } catch (error) {
+    console.error('[DeleteMessage Error]', error);
+    return res.status(500).json({ success: false, message: error.message || 'Server error' });
+  }
+};
 
 // 'mongoose' needed for ObjectId validation
 const mongoose = require('mongoose');
@@ -26,11 +68,53 @@ const { sendPushNotification } = require('../utils/pushNotifier');
 const MAX_MESSAGE_LENGTH = 1000;
 
 // =============================================================================
+// @desc    Delete a message (sender only, removes for everyone)
+// @route   DELETE /api/messages/:messageId
+// @access  Protected
+// =============================================================================
+
+exports.deleteMessage = async (req, res) => {
+  try {
+    const message = await Message.findById(req.params.messageId);
+    if (!message) {
+      return res.status(404).json({ success: false, message: 'Message not found' });
+    }
+    if (String(message.sender) !== String(req.user._id)) {
+      return res.status(403).json({ success: false, message: 'You can only delete your own messages' });
+    }
+    await Message.findByIdAndDelete(req.params.messageId);
+    return res.status(200).json({ success: true, message: 'Message deleted successfully' });
+  } catch (error) {
+    console.error('[DeleteMessage Error]', error);
+    return res.status(500).json({ success: false, message: error.message || 'Server error' });
+  }
+};
 // @desc    Send a message regarding an item
 // @route   POST /api/messages
 // @access  Protected (requires JWT)
 // Flow: validate → save message → create in-app notification → send push notification
 // =============================================================================
+// @desc    Delete a message (sender only, removes for everyone)
+// @route   DELETE /api/messages/:messageId
+// @access  Protected
+// =============================================================================
+
+exports.deleteMessage = async (req, res) => {
+  try {
+    const message = await Message.findById(req.params.messageId);
+    if (!message) {
+      return res.status(404).json({ success: false, message: 'Message not found' });
+    }
+    if (String(message.sender) !== String(req.user._id)) {
+      return res.status(403).json({ success: false, message: 'You can only delete your own messages' });
+    }
+    await Message.findByIdAndDelete(req.params.messageId);
+    return res.status(200).json({ success: true, message: 'Message deleted successfully' });
+  } catch (error) {
+    console.error('[DeleteMessage Error]', error);
+    return res.status(500).json({ success: false, message: error.message || 'Server error' });
+  }
+};
 
 exports.sendMessage = async (req, res) => {
   try {
@@ -167,6 +251,27 @@ exports.sendMessage = async (req, res) => {
 };
 
 // =============================================================================
+// @desc    Delete a message (sender only, removes for everyone)
+// @route   DELETE /api/messages/:messageId
+// @access  Protected
+// =============================================================================
+
+exports.deleteMessage = async (req, res) => {
+  try {
+    const message = await Message.findById(req.params.messageId);
+    if (!message) {
+      return res.status(404).json({ success: false, message: 'Message not found' });
+    }
+    if (String(message.sender) !== String(req.user._id)) {
+      return res.status(403).json({ success: false, message: 'You can only delete your own messages' });
+    }
+    await Message.findByIdAndDelete(req.params.messageId);
+    return res.status(200).json({ success: true, message: 'Message deleted successfully' });
+  } catch (error) {
+    console.error('[DeleteMessage Error]', error);
+    return res.status(500).json({ success: false, message: error.message || 'Server error' });
+  }
+};
 // @desc    Get the signed-in user's active conversations (inbox)
 // @route   GET /api/messages/conversations
 // @access  Protected
@@ -178,6 +283,27 @@ exports.sendMessage = async (req, res) => {
 //   5. Batch-fetch item and user details for all conversations
 //   6. Sort by most recent message
 // =============================================================================
+// @desc    Delete a message (sender only, removes for everyone)
+// @route   DELETE /api/messages/:messageId
+// @access  Protected
+// =============================================================================
+
+exports.deleteMessage = async (req, res) => {
+  try {
+    const message = await Message.findById(req.params.messageId);
+    if (!message) {
+      return res.status(404).json({ success: false, message: 'Message not found' });
+    }
+    if (String(message.sender) !== String(req.user._id)) {
+      return res.status(403).json({ success: false, message: 'You can only delete your own messages' });
+    }
+    await Message.findByIdAndDelete(req.params.messageId);
+    return res.status(200).json({ success: true, message: 'Message deleted successfully' });
+  } catch (error) {
+    console.error('[DeleteMessage Error]', error);
+    return res.status(500).json({ success: false, message: error.message || 'Server error' });
+  }
+};
 
 exports.getConversations = async (req, res) => {
   try {
@@ -299,12 +425,54 @@ exports.getConversations = async (req, res) => {
 };
 
 // =============================================================================
+// @desc    Delete a message (sender only, removes for everyone)
+// @route   DELETE /api/messages/:messageId
+// @access  Protected
+// =============================================================================
+
+exports.deleteMessage = async (req, res) => {
+  try {
+    const message = await Message.findById(req.params.messageId);
+    if (!message) {
+      return res.status(404).json({ success: false, message: 'Message not found' });
+    }
+    if (String(message.sender) !== String(req.user._id)) {
+      return res.status(403).json({ success: false, message: 'You can only delete your own messages' });
+    }
+    await Message.findByIdAndDelete(req.params.messageId);
+    return res.status(200).json({ success: true, message: 'Message deleted successfully' });
+  } catch (error) {
+    console.error('[DeleteMessage Error]', error);
+    return res.status(500).json({ success: false, message: error.message || 'Server error' });
+  }
+};
 // @desc    Get messages between two users for a specific item (chronological)
 // @route   GET /api/messages/:itemId/:otherUserId
 // @access  Protected
 // Called by ChatScreen when user opens a conversation
 // Also marks all received messages as read (read receipts)
 // =============================================================================
+// @desc    Delete a message (sender only, removes for everyone)
+// @route   DELETE /api/messages/:messageId
+// @access  Protected
+// =============================================================================
+
+exports.deleteMessage = async (req, res) => {
+  try {
+    const message = await Message.findById(req.params.messageId);
+    if (!message) {
+      return res.status(404).json({ success: false, message: 'Message not found' });
+    }
+    if (String(message.sender) !== String(req.user._id)) {
+      return res.status(403).json({ success: false, message: 'You can only delete your own messages' });
+    }
+    await Message.findByIdAndDelete(req.params.messageId);
+    return res.status(200).json({ success: true, message: 'Message deleted successfully' });
+  } catch (error) {
+    console.error('[DeleteMessage Error]', error);
+    return res.status(500).json({ success: false, message: error.message || 'Server error' });
+  }
+};
 
 exports.getMessages = async (req, res) => {
   try {

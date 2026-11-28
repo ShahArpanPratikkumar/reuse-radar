@@ -4,6 +4,7 @@ const {
   sendMessage,
   getMessages,
   getConversations,
+  deleteMessage,
 } = require('../controllers/messageController');
 const { protect } = require('../middleware/authMiddleware');
 
@@ -12,5 +13,6 @@ router.get('/conversations', protect, getConversations);
 
 router.post('/', protect, sendMessage);
 router.get('/:itemId/:otherUserId', protect, getMessages);
+router.delete('/:messageId', protect, deleteMessage);
 
 module.exports = router;
