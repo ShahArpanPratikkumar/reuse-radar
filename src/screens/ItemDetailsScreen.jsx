@@ -35,6 +35,7 @@ import {
 import * as Clipboard from 'expo-clipboard';
 // Device GPS location module for real-time walking distance calculation
 import * as Location from 'expo-location';
+import { Ionicons } from '@expo/vector-icons';
 // Global authentication context (provides logged-in user details)
 import { AuthContext } from '../context/AuthContext';
 // Service for fetching single item details and deleting items
@@ -519,7 +520,7 @@ const ItemDetailsScreen = ({ route, navigation }) => {
           onPress={() => navigation.goBack()}
           activeOpacity={0.7}
         >
-          <Text style={styles.backBtnText}>←</Text>
+          <Ionicons name="arrow-back" size={20} color="#064E3B" />
         </TouchableOpacity>
 
         <View style={styles.topBarTitleRow}>
@@ -531,27 +532,31 @@ const ItemDetailsScreen = ({ route, navigation }) => {
 
         <View style={styles.topBarActions}>
           <TouchableOpacity style={styles.iconActionBtn} onPress={handleShare}>
-            <Text style={styles.iconActionText}>↗</Text>
+            <Ionicons name="share-outline" size={18} color="#064E3B" />
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.iconActionBtn, isFavorited && styles.iconActionBtnFav]}
             onPress={handleToggleFavorite}
           >
-            <Text style={styles.iconActionText}>{isFavorited ? '❤️' : '🤍'}</Text>
+            <Ionicons
+              name={isFavorited ? 'heart' : 'heart-outline'}
+              size={18}
+              color={isFavorited ? '#EF4444' : '#064E3B'}
+            />
           </TouchableOpacity>
           {isOwner ? (
             <TouchableOpacity
               style={styles.iconActionBtn}
               onPress={() => navigation.navigate('AddItem', { itemToEdit: item })}
             >
-              <Text style={styles.iconActionText}>✏️</Text>
+              <Ionicons name="create-outline" size={18} color="#064E3B" />
             </TouchableOpacity>
           ) : (
             <TouchableOpacity
               style={styles.iconActionBtn}
               onPress={() => openReportModal('item')}
             >
-              <Text style={styles.iconActionText}>🚩</Text>
+              <Ionicons name="flag-outline" size={18} color="#DC2626" />
             </TouchableOpacity>
           )}
         </View>
@@ -669,7 +674,10 @@ const ItemDetailsScreen = ({ route, navigation }) => {
               onPress={handleCopyItemId}
               activeOpacity={0.8}
             >
-              <Text style={styles.copyIdText}>📋 Copy ID</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                <Ionicons name="copy-outline" size={13} color="#065F46" />
+                <Text style={styles.copyIdText}>Copy ID</Text>
+              </View>
             </TouchableOpacity>
           ) : null}
         </View>
@@ -678,7 +686,7 @@ const ItemDetailsScreen = ({ route, navigation }) => {
         <View style={styles.locationCard}>
           <View style={styles.locationHeaderRow}>
             <View style={styles.locationPinIconBox}>
-              <Text style={styles.locationPinEmoji}>🧭</Text>
+              <Ionicons name="compass-outline" size={22} color="#064E3B" />
             </View>
             <View style={styles.locationTexts}>
               <Text style={styles.locationDistanceTitle}>{distanceDisplay}</Text>
@@ -695,9 +703,12 @@ const ItemDetailsScreen = ({ route, navigation }) => {
 
           <View style={styles.miniMapGraphic}>
             <View style={styles.miniMapRing} />
-            <Text style={styles.miniMapCenterPin}>📍</Text>
+            <Ionicons name="location" size={28} color="#DC2626" />
             <View style={styles.exactPickupPill}>
-              <Text style={styles.exactPickupText}>📍 Exact pickup shared upon request</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                <Ionicons name="location-outline" size={12} color="#064E3B" />
+                <Text style={styles.exactPickupText}>Exact pickup shared upon request</Text>
+              </View>
             </View>
           </View>
         </View>
@@ -929,7 +940,10 @@ const ItemDetailsScreen = ({ route, navigation }) => {
               onPress={() => navigation.navigate('AddItem', { itemToEdit: item })}
               activeOpacity={0.85}
             >
-              <Text style={styles.ownerEditBtnText}>✏️ Edit Listing</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <Ionicons name="create-outline" size={18} color="#A3E635" />
+                <Text style={styles.ownerEditBtnText}>Edit Listing</Text>
+              </View>
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -937,7 +951,10 @@ const ItemDetailsScreen = ({ route, navigation }) => {
               onPress={handleDeleteItem}
               activeOpacity={0.85}
             >
-              <Text style={styles.ownerDeleteBtnText}>🗑️ Delete</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <Ionicons name="trash-outline" size={18} color="#DC2626" />
+                <Text style={styles.ownerDeleteBtnText}>Delete</Text>
+              </View>
             </TouchableOpacity>
           </View>
         ) : (
@@ -947,7 +964,10 @@ const ItemDetailsScreen = ({ route, navigation }) => {
               onPress={openChat}
               activeOpacity={0.85}
             >
-              <Text style={styles.messageDonorBtnText}>💬 Message Donor</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <Ionicons name="chatbubble-ellipses-outline" size={17} color="#064E3B" />
+                <Text style={styles.messageDonorBtnText}>Message Donor</Text>
+              </View>
             </TouchableOpacity>
 
             <TouchableOpacity

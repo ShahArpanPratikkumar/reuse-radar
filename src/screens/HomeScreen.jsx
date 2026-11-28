@@ -41,15 +41,15 @@ const PAGE_SIZE = 10;
 // Filter chips for quick item sorting
 const QUICK_FILTERS = ['All', NEARBY_FILTER, 'Just Added', 'Like New'];
 
-// Category shortcuts with themed emojis
+// Category shortcuts with vector icons
 const CATEGORY_CHIPS = [
-  { name: 'Books', label: 'Books & Notes', emoji: '📚' },
-  { name: 'Electronics', label: 'Electronics & Laptops', emoji: '💻' },
-  { name: 'Furniture', label: 'Furniture & Study Tables', emoji: '🪑' },
-  { name: 'Cycles', label: 'Cycles & Commute', emoji: '🚲' },
-  { name: 'Clothes', label: 'Clothes & Essentials', emoji: '👕' },
-  { name: 'Bags', label: 'Bags & Kits', emoji: '🎒' },
-  { name: 'Household', label: 'Household & Plants', emoji: '🏠' },
+  { name: 'Books', label: 'Books & Notes', icon: 'book-outline' },
+  { name: 'Electronics', label: 'Electronics & Laptops', icon: 'laptop-outline' },
+  { name: 'Furniture', label: 'Furniture & Study Tables', icon: 'bed-outline' },
+  { name: 'Cycles', label: 'Cycles & Commute', icon: 'bicycle-outline' },
+  { name: 'Clothes', label: 'Clothes & Essentials', icon: 'shirt-outline' },
+  { name: 'Bags', label: 'Bags & Kits', icon: 'bag-handle-outline' },
+  { name: 'Household', label: 'Household & Plants', icon: 'home-outline' },
 ];
 
 // Helper: Split a flat list into pairs of two for a balanced two-column grid layout
@@ -469,7 +469,7 @@ const HomeScreen = ({ navigation }) => {
       {/* Search Input Box with clear button */}
       <View style={styles.searchRow}>
         <View style={styles.searchBox}>
-          <Text style={styles.searchLens}>🔍</Text>
+          <Ionicons name="search-outline" size={18} color="#64748B" style={styles.searchLens} />
           <TextInput
             style={styles.searchInput}
             placeholder="Search laptops, textbooks, cycles, dorm chairs..."
@@ -531,7 +531,7 @@ const HomeScreen = ({ navigation }) => {
               activeOpacity={0.8}
             >
               <View style={[styles.categoryCircle, active && styles.categoryCircleActive]}>
-                <Text style={styles.categoryEmoji}>{cat.emoji}</Text>
+                <Ionicons name={cat.icon} size={26} color={active ? '#064E3B' : '#059669'} />
               </View>
               <Text
                 style={[styles.categoryLabel, active && styles.categoryLabelActive]}
@@ -563,7 +563,10 @@ const HomeScreen = ({ navigation }) => {
           onPress={() => navigation.navigate('Explore')}
           activeOpacity={0.85}
         >
-          <Text style={styles.heroMapText}>Map 🗺️</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
+            <Text style={styles.heroMapText}>Map</Text>
+            <Ionicons name="map-outline" size={15} color="#064E3B" />
+          </View>
         </TouchableOpacity>
       </View>
 
@@ -574,7 +577,7 @@ const HomeScreen = ({ navigation }) => {
         activeOpacity={0.88}
       >
         <View style={styles.requestCtaIconBox}>
-          <Text style={styles.requestCtaIcon}>📣</Text>
+          <Ionicons name="megaphone-outline" size={22} color="#064E3B" />
         </View>
         <View style={{ flex: 1 }}>
           <Text style={styles.requestCtaTitle}>Need something urgently?</Text>
@@ -687,9 +690,13 @@ const HomeScreen = ({ navigation }) => {
           onPress={fetchLocation}
           activeOpacity={0.8}
         >
-          <Text style={styles.locationText} numberOfLines={1}>
-            📍 {campusLabel} ⌄
-          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+            <Ionicons name="location" size={14} color="#DC2626" />
+            <Text style={styles.locationText} numberOfLines={1}>
+              {campusLabel}
+            </Text>
+            <Ionicons name="chevron-down" size={13} color="#064E3B" />
+          </View>
         </TouchableOpacity>
 
         {/* Messages Shortcut Button */}
